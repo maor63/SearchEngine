@@ -38,4 +38,3 @@ class ReadFile:
             # self.read_docs(path + currfolder + "/" + currfolder)
 
         return docs
-
