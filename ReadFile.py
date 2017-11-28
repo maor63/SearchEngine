@@ -5,19 +5,19 @@ from Document import Document
 
 class ReadFile:
     def read_files(self, path):
-        allSubFolders = listdir(path)
+        all_sub_folders = listdir(path)
         docs = []
         i = 1
-        for currfolder in allSubFolders:
-            msg = "\r Read file {0}/{1}".format(str(i), len(allSubFolders))
+        for curr_folder in all_sub_folders:
+            msg = "\r Read file {0}/{1}".format(str(i), len(all_sub_folders))
             print(msg, end="")
             i += 1
-            if currfolder.startswith("FB"):
-                self.read_docs_from_FB_file(path + currfolder + "/" + currfolder)
-            elif currfolder.startswith("FT"):
-                self.read_docs_from_FT_file(path + currfolder + "/" + currfolder)
+            if curr_folder.startswith("FB"):
+                self.read_docs_from_FB_file(path + curr_folder + "/" + curr_folder)
+            elif curr_folder.startswith("FT"):
+                self.read_docs_from_FT_file(path + curr_folder + "/" + curr_folder)
             else:
-                self.read_docs_from_LA_file(path + currfolder + "/" + currfolder)
+                self.read_docs_from_LA_file(path + curr_folder + "/" + curr_folder)
 
         return docs
 
@@ -46,15 +46,15 @@ class ReadFile:
     def create_doc_from_raw(self, raw_doc):
         d = Document()
         s_doc_id = raw_doc.find("<DOCNO>")
-        e_doc_id = raw_doc.find("</DOCNO>", s_doc_id + 6)
-        doc_id = raw_doc[s_doc_id + 7:e_doc_id].strip()
+        e_doc_id = raw_doc.find("</DOCNO>", s_doc_id + len("<DOCNO>"))
+        doc_id = raw_doc[s_doc_id + len("<DOCNO>"):e_doc_id].strip()
         d.id = doc_id
 
-        s_doc_text = raw_doc.find("<TEXT>", e_doc_id + 7)
-        e_doc_text = raw_doc.find("</TEXT>", s_doc_text + 6)
+        s_doc_text = raw_doc.find("<TEXT>", e_doc_id + len("</DOCNO>"))
+        e_doc_text = raw_doc.find("</TEXT>", s_doc_text + len("<TEXT>"))
         if s_doc_text == -1:
             return None
-        d.text = raw_doc[s_doc_text + 6: e_doc_text].strip()
+        d.text = raw_doc[s_doc_text + len("<TEXT>"): e_doc_text].strip()
         return d
 
     def fix_text(self, doc):
