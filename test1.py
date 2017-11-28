@@ -1,17 +1,17 @@
-import os
-
-os.chdir('corpus')
-
-
-for folder in os.listdir(os.curdir):
-    os.chdir(folder)
-    # print(os.listdir(os.curdir))
-    for file in os.listdir(os.curdir):
-        # open file
-        fob = open(file, 'r')
-        for line in file:
-            if line == '<DOC>':
-                continue
-        # close file
-        fob.close()
-        os.chdir("..")
+def _parse_date2(self, token):
+    format = '%{0} %{1}'
+    try:
+        day, month = token.split(' ')
+        d = 'd'
+        m = 'b'
+        if len(day) <= 2:
+            if len(month) > 3:
+                m = 'B'
+            return self._parse_date_by_format(format.format(d, m), token)
+        else:
+            month = day
+            if len(month) > 3:
+                m = 'B'
+            return self._parse_date_by_format(format.format(m, d), token)
+    except ValueError:
+        pass

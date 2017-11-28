@@ -12,10 +12,6 @@ class ParserTest(unittest.TestCase):
         result = parser.parse_token("3.55555")
         self.assertEqual("3.56", result)
 
-    def test_parse_fraction(self):
-        result = self.parser.parse_token("2/3")
-        self.assertEqual("0.67", result)
-
     def test_parse_big_numbers(self):
         result = self.parser.parse_token("1,345")
         self.assertEqual("1345", result)
@@ -76,7 +72,29 @@ class ParserTest(unittest.TestCase):
         result = self.parser.parse_token("08th July 2017")
         self.assertEqual("08/07/2017", result)
 
+    def test_parse_date_type_11(self):
+        result = self.parser.parse_token("14 MAY")
+        self.assertEqual("14/05", result)
 
+    def test_parse_date_type_12(self):
+        result = self.parser.parse_token("June 4")
+        self.assertEqual("04/06", result)
+
+    def test_parse_date_type_13(self):
+        result = self.parser.parse_token("May 1994")
+        self.assertEqual("05/1994", result)
+
+    def test_parse_date_type_14(self):
+        result = self.parser.parse_token("05/1994")
+        self.assertEqual("05/1994", result)
+
+    def test_parse_date_type_15(self):
+        result = self.parser.parse_token("14/05")
+        self.assertEqual("14/05", result)
+
+    def test_parse_date_type_16(self):
+        result = self.parser.parse_token("12/05/1991")
+        self.assertEqual("12/05/1991", result)
 
 
 if __name__ == '__main__':
