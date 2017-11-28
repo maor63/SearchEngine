@@ -12,19 +12,14 @@ class ReadFile:
             msg = "\r Read file {0}/{1}".format(str(i), len(all_sub_folders))
             print(msg, end="")
             i += 1
-            if curr_folder.startswith("FB"):
-                self.read_docs_from_FB_file(path + curr_folder + "/" + curr_folder)
-            elif curr_folder.startswith("FT"):
-                self.read_docs_from_FT_file(path + curr_folder + "/" + curr_folder)
-            else:
+            if curr_folder.startswith("LA"):
                 self.read_docs_from_LA_file(path + curr_folder + "/" + curr_folder)
+            else:
+                self.read_docs_from_FB_FT_file(path + curr_folder + "/" + curr_folder)
 
         return docs
 
-    def read_docs_from_FB_file(self, file_path):
-        return self.read_from_file(lambda d: d, file_path)
-
-    def read_docs_from_FT_file(self, file_path):
+    def read_docs_from_FB_FT_file(self, file_path):
         return self.read_from_file(lambda d: d, file_path)
 
     def read_docs_from_LA_file(self, file_path):
