@@ -73,8 +73,8 @@ class ParserTest(unittest.TestCase):
         self.assertEqual("08/07/2017", result)
 
     def test_parse_date_type_11(self):
-        result = self.parser.parse_token("14 MAY")
-        self.assertEqual("14/05", result)
+        result = self.parser.parse_token("04 MAY")
+        self.assertEqual("04/05", result)
 
     def test_parse_date_type_12(self):
         result = self.parser.parse_token("June 4")
@@ -84,17 +84,21 @@ class ParserTest(unittest.TestCase):
         result = self.parser.parse_token("May 1994")
         self.assertEqual("05/1994", result)
 
-    def test_parse_date_type_14(self):
+    def test_parse_date_normal_month_year(self):
         result = self.parser.parse_token("05/1994")
         self.assertEqual("05/1994", result)
 
-    def test_parse_date_type_15(self):
+    def test_parse_date_normal_day_month(self):
         result = self.parser.parse_token("14/05")
         self.assertEqual("14/05", result)
 
-    def test_parse_date_type_16(self):
+    def test_parse_date_normal_day_month_year(self):
         result = self.parser.parse_token("12/05/1991")
         self.assertEqual("12/05/1991", result)
+
+    def test_parse_date_month_day(self):
+        result = self.parser.parse_token("sep 07")
+        self.assertEqual("07/09", result)
 
 
 if __name__ == '__main__':

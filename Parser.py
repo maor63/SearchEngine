@@ -1,21 +1,23 @@
+import re
 from datetime import datetime
-
-import nltk.tokenize.simple
 
 
 class Parser:
     def __init__(self):
-        pass
+        self.pattern = re.compile(".*\d.*")
 
     def parse_token(self, token):
-        token = token.replace(',', '')
-        if '%' in token:
-            return self.parse_precentage(token, '%')
-        elif 'percentage' in token:
-            return self.parse_precentage(token, 'percentage')
-        elif 'percent' in token:
-            return self.parse_precentage(token, 'percent')
-        return self._parse_number(token)
+        if self.pattern.match(token):
+            token = token.replace(',', '')
+            if '%' in token:
+                return self.parse_precentage(token, '%')
+            elif 'percentage' in token:
+                return self.parse_precentage(token, 'percentage')
+            elif 'percent' in token:
+                return self.parse_precentage(token, 'percent')
+            return self._parse_number(token)
+        else:
+            return token
 
     def parse_precentage(self, token, type):
         return self._parse_number(token.replace(type, '')) + ' percent'
@@ -30,57 +32,54 @@ class Parser:
         if '/' in token:
             return token
         token = token.replace('th', '')
-        format = '%{0} %{1} %{2}'
-        try:
-            return self._parse_day_month_year_date(format, token)
-        except ValueError:
-            day, month = token.split(' ')
-            try:
-                return self._parse_day_month_date(day, month, token)
-            except ValueError:
-                month, year = token.split(' ')
-                if len(year) > 2:
-                    if len(month) > 3:
-                        return self._parse_date_by_format('%B %Y', token, "%m/%Y")
-                    else:
-                        return self._parse_date_by_format('%b %Y', token, "%m/%Y")
-                else:
-                    if len(month) > 3:
-                        return self._parse_date_by_format('%B %y', token, "%m/%Y")
-                    else:
-                        return self._parse_date_by_format('%b %y', token, "%m/%Y")
+        return self._parse_day_month_year_date(token)
 
+    def _parse_day_month_year_date(self, token):
+        input_format = ''
+        output_format = ''
+        date = token.split(' ')
+        if date[0].isdigit():
+            input_format, output_format = self.day_first(date, input_format, output_format)
+        else:
+            input_format, output_format = self.month_first(date, input_format, output_format)
+        if len(date) > 2:
+            year = date[2]
+            input_format, output_format = self.year_last(year, input_format, output_format)
 
-    def _parse_day_month_year_date(self, format, token):
-        day, month, year = token.split(' ')
-        d = 'd'
-        m = 'b'
+        return self._parse_date_by_format(input_format, token, output_format)
+
+    def month_first(self, date, input_format, output_format):
+        month = date[0]
+        output_format += '%m'
+        if len(month) > 3:
+            input_format += '%B'
+        else:
+            input_format += '%b'
+        if len(date[1]) <= 2 and int(date[1]) <= 31:
+            input_format += ' %d'
+            output_format = "%d/" + output_format
+        else:
+            year = date[1]
+            input_format, output_format = self.year_last(year, input_format, output_format)
+        return input_format, output_format
+
+    def year_last(self, year, input_format, output_format):
+        output_format += "/%Y"
         if len(year) <= 2:
-            y = 'y'
+            input_format += ' %y'
         else:
-            y = 'Y'
-        if len(day) <= 2:
-            if len(month) > 3:
-                m = 'B'
-            return self._parse_date_by_format(format.format(d, m, y), token)
-        else:
-            month = day
-            if len(month) > 3:
-                m = 'B'
-            return self._parse_date_by_format(format.format(m, d, y), token)
+            input_format += ' %Y'
+        return input_format, output_format
 
-    def _parse_day_month_date(self, day, month, token):
-        if len(day) <= 2:
-            if len(month) > 3:
-                return self._parse_date_by_format('%d %B', token, "%d/%m")
-            else:
-                return self._parse_date_by_format('%d %b', token, "%d/%m")
+    def day_first(self, date, input_format, output_format):
+        input_format += '%d'
+        output_format += '%d/%m'
+        month = date[1]
+        if len(month) > 3:
+            input_format += ' %B'
         else:
-            if len(day) > 3:
-                return self._parse_date_by_format('%B %d', token, "%d/%m")
-            else:
-                return self._parse_date_by_format('%b %d', token, "%d/%m")
-                # return self._parse_date_by_format('%b %d %Y', token)
+            input_format += ' %b'
+        return input_format, output_format
 
     def _parse_date_by_format(self, format, token, output_format="%d/%m/%Y"):
         return datetime.strptime(token, format).strftime(output_format)
