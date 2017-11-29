@@ -2,11 +2,13 @@ import re
 from os import listdir
 
 from Document import Document
+from Parser import Parser
 
 
 class ReadFile:
     def __init__(self):
-        self.text_tags = re.compile("\[.*]")
+        self.text_tags = re.compile("\[.*]|<.*>")
+        self.parser = Parser()
 
     def read_files(self, path):
         all_sub_folders = listdir(path)
@@ -16,12 +18,17 @@ class ReadFile:
             msg = "\r Read file {0}/{1}".format(str(i), len(all_sub_folders))
             print(msg, end="")
             i += 1
+            d = None
             if curr_folder.startswith("LA"):
-                self.read_docs_from_LA_file(path + curr_folder + "/" + curr_folder)
+                d = self.read_docs_from_LA_file(path + curr_folder + "/" + curr_folder)
             elif curr_folder.startswith("FB"):
-                self.read_docs_from_FB_file(path + curr_folder + "/" + curr_folder)
+                d = self.read_docs_from_FB_file(path + curr_folder + "/" + curr_folder)
             else:
-                self.read_docs_from_FT_file(path + curr_folder + "/" + curr_folder)
+                d = self.read_docs_from_FT_file(path + curr_folder + "/" + curr_folder)
+
+
+            for t in d:
+                self.parser.parse_text(t.text)
 
         return docs
 
@@ -29,7 +36,7 @@ class ReadFile:
         return self.read_from_file(self.remove_language_artical_type_rows, file_path)
 
     def read_docs_from_FT_file(self, file_path):
-        return self.read_from_file(lambda d: d, file_path)
+        return self.read_from_file(self.remove_redundant_sings, file_path)
 
     def read_docs_from_LA_file(self, file_path):
         return self.read_from_file(self.remove_p_tags, file_path)
@@ -77,4 +84,8 @@ class ReadFile:
         else:
             doc.text = text
         doc.text = doc.text.strip()
+        return doc
+
+    def remove_redundant_sings(self, doc):
+        doc.text = self.text_tags.sub('', doc.text)
         return doc

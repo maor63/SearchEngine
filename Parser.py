@@ -4,10 +4,63 @@ from datetime import datetime
 
 class Parser:
     def __init__(self):
-        self.pattern = re.compile(".*\d.*")
+        self.contain_number = re.compile(".*\d.*")
+        self.delimiter = re.compile("\s*")
+        self.redundant_signs = re.compile("[():|@^!?&]")
+
+    def parse_text(self, text):
+        text = self.redundant_signs.sub('', text)
+        raw_terms = self.delimiter.split(text)
+        terms = []
+        upper_case_buffer = []
+        date_buffer = []
+        for raw_term in raw_terms:
+            try:
+                if '-' in raw_term:
+                    self.parse_connected(terms, raw_term)
+                elif self.is_part_of_date(raw_term):
+                    date_buffer.append(raw_term)
+                elif '$' in raw_term:
+                    terms.append(self.parse_token(raw_term))
+                elif self.is_upper_case(raw_term):
+                    upper_case_buffer.append(raw_term)
+                else:
+                    self.parse_buffers(date_buffer, upper_case_buffer, terms)
+                    date_buffer = []
+                    upper_case_buffer = []
+                    terms.append(raw_term)
+            except:
+                terms.append(raw_term)
+        self.parse_buffers(date_buffer, upper_case_buffer, terms)
+        return terms
+
+    def is_upper_case(self, raw_term):
+        return not raw_term.islower() and '.' not in raw_term
+
+    def parse_buffers(self, date_buffer, upper_case_buffer, terms):
+        if len(upper_case_buffer) > 3:
+            [terms.append(self.parse_token(term)) for term in upper_case_buffer]
+        elif len(upper_case_buffer) != 0:
+            self.parse_upper_case_buffer(upper_case_buffer, terms)
+        if len(date_buffer) != 0:
+            self.parse_date_buffer(date_buffer, terms)
+
+    def parse_date_buffer(self, date_buffer, terms):
+        token = " ".join(date_buffer)
+        terms.append(self.parse_token(token))
+
+    def parse_upper_case_buffer(self, buffer, terms):
+        token = " ".join(buffer)
+        self.parse_upper_case(terms, token)
+
+    def parse_upper_case(self, terms, token):
+        term = self.parse_token(token)
+        terms.append(term)
+        if ' ' in token:
+            [terms.append(self.parse_token(term)) for term in token.split(' ')]
 
     def parse_token(self, token):
-        if self.pattern.match(token):
+        if self.contain_number.match(token):
             token = token.replace(',', '')
             if '%' in token:
                 return self.parse_precentage(token, '%')
@@ -15,30 +68,36 @@ class Parser:
                 return self.parse_precentage(token, 'percentage')
             elif 'percent' in token:
                 return self.parse_precentage(token, 'percent')
-            return self._parse_number(token)
+            elif '-' in token:
+                return token
+            elif '$' in token:
+                return self._parse_number(token.replace('$', '')) + " dollar"
+            elif self.is_number(token):
+                return self._parse_number(token)
+            return self._parse_date(token)
         else:
-            return token
+            return token.lower()
 
     def parse_precentage(self, token, type):
         return self._parse_number(token.replace(type, '')) + ' percent'
 
     def _parse_number(self, token):
-        try:
-            return self._parse_float(float(token))
-        except ValueError:
-            return self._parse_date(token)
+        return self._parse_float(float(token))
 
     def _parse_date(self, token):
-        if '/' in token:
+        try:
+            if '/' in token:
+                return token
+            token = token.replace('th', '')
+            return self._parse_day_month_year_date(token)
+        except Exception:
             return token
-        token = token.replace('th', '')
-        return self._parse_day_month_year_date(token)
 
     def _parse_day_month_year_date(self, token):
         input_format = ''
         output_format = ''
         date = token.split(' ')
-        if date[0].isdigit():
+        if self.is_number(date[0]):
             input_format, output_format = self._day_first(date, input_format, output_format)
         else:
             input_format, output_format = self._month_first(date, input_format, output_format)
@@ -87,3 +146,29 @@ class Parser:
     def _parse_float(self, f):
         frac_result = str(format(f, ".2f"))
         return frac_result.replace('.00', '')
+
+    def is_month(self, raw_term):
+        try:
+            if len(raw_term) > 3:
+                datetime.strptime(raw_term, "%B")
+            else:
+                datetime.strptime(raw_term, "%b")
+            return True
+        except ValueError:
+            return False
+
+    def is_part_of_date(self, raw_term):
+        return self.is_number(raw_term) or self.is_month(raw_term)
+
+    def is_number(self, raw_term):
+        try:
+            float(raw_term)
+            return True
+        except ValueError:
+            return False
+
+    def parse_connected(self, terms, token):
+        term = self.parse_token(token)
+        terms.append(term)
+        if '-' in token:
+            [terms.append(self.parse_token(term)) for term in token.split('-')]

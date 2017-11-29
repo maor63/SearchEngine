@@ -100,6 +100,36 @@ class ParserTest(unittest.TestCase):
         result = self.parser.parse_token("sep 07")
         self.assertEqual("07/09", result)
 
+    def test_parse_text_with_upper_case_words(self):
+        text = "Jiang Zemin today the Chinese Army to strengthen"
+        result = self.parser.parse_text(text)
+        expected = ["jiang zemin", "jiang", "zemin", "today", "the", "chinese army", "chinese", "army", "to",
+                    "strengthen"]
+        self.assertListEqual(result, expected)
+
+    def test_parse_text_with_dates(self):
+        text = "3 mission 5 NBA of 12 September 2006 and JULY 22 win 33-44 test-case"
+        result = self.parser.parse_text(text)
+        expected = ["3", "mission", "nba", "5", "of", "12/09/2006", "and", "22/07", "win", "33-44", "33", "44",
+                    "test-case", "test", "case"]
+        self.assertListEqual(result, expected)
+
+    def test_parse_text(self):
+        text = '''Jiang Zemin 5.79 today the Chinese Army 4 to strengthen its
+    own building mission of 12 September 2006 and JULY 22
+    after May 11 1999 at the 4 SEP and JUNE 2005'''
+        result = self.parser.parse_text(text)
+        expected = ["jiang zemin", "jiang", "zemin", "5.79", "today", "the", "chinese army", "chinese", "army", "4",
+                    "to", "strengthen", "its", "own", "building", "mission", "of", "12/09/2006", "and", "22/07",
+                    "after", "11/05/1999", "at", "the", "04/09", "and", "06/2005"]
+        self.assertListEqual(result, expected)
+
+    def test_parse_text_with_dollar(self):
+        text = "hello to all of you i am $20 min away"
+        result = self.parser.parse_text(text)
+        expected = ["hello", "to", "all", "of", "you", "i", "am", "20 dollar", "min", "away"]
+        self.assertListEqual(result, expected)
+
 
 if __name__ == '__main__':
     unittest.main()
