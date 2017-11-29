@@ -1,9 +1,13 @@
+import re
 from os import listdir
 
 from Document import Document
 
 
 class ReadFile:
+    def __init__(self):
+        self.text_tags = re.compile("\[.*]")
+
     def read_files(self, path):
         all_sub_folders = listdir(path)
         docs = []
@@ -14,16 +18,21 @@ class ReadFile:
             i += 1
             if curr_folder.startswith("LA"):
                 self.read_docs_from_LA_file(path + curr_folder + "/" + curr_folder)
+            elif curr_folder.startswith("FB"):
+                self.read_docs_from_FB_file(path + curr_folder + "/" + curr_folder)
             else:
-                self.read_docs_from_FB_FT_file(path + curr_folder + "/" + curr_folder)
+                self.read_docs_from_FT_file(path + curr_folder + "/" + curr_folder)
 
         return docs
 
-    def read_docs_from_FB_FT_file(self, file_path):
+    def read_docs_from_FB_file(self, file_path):
+        return self.read_from_file(self.remove_language_artical_type_rows, file_path)
+
+    def read_docs_from_FT_file(self, file_path):
         return self.read_from_file(lambda d: d, file_path)
 
     def read_docs_from_LA_file(self, file_path):
-        return self.read_from_file(self.fix_text, file_path)
+        return self.read_from_file(self.remove_p_tags, file_path)
 
     def read_from_file(self, clean_fn, file_path):
         docs = []
@@ -52,9 +61,20 @@ class ReadFile:
         d.text = raw_doc[s_doc_text + len("<TEXT>"): e_doc_text].strip()
         return d
 
-    def fix_text(self, doc):
+    def remove_p_tags(self, doc):
         text = doc.text.split("<P>\n</P>")
         text[0] = text[0].replace("<P>\n", "")
         text[len(text) - 1] = text[len(text) - 1].replace("</P>", "")
         doc.text = "\n".join(text)
+        return doc
+
+    def remove_language_artical_type_rows(self, doc):
+        text = self.text_tags.sub('', doc.text)
+        text_rows = text.split("\n")
+        if text_rows[0].startswith("Language:") and text_rows[1].startswith("Article Type:"):
+            text_rows = text_rows[2:]
+            doc.text = "\n".join(text_rows)
+        else:
+            doc.text = text
+        doc.text = doc.text.strip()
         return doc

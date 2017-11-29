@@ -39,16 +39,16 @@ class Parser:
         output_format = ''
         date = token.split(' ')
         if date[0].isdigit():
-            input_format, output_format = self.day_first(date, input_format, output_format)
+            input_format, output_format = self._day_first(date, input_format, output_format)
         else:
-            input_format, output_format = self.month_first(date, input_format, output_format)
+            input_format, output_format = self._month_first(date, input_format, output_format)
         if len(date) > 2:
             year = date[2]
-            input_format, output_format = self.year_last(year, input_format, output_format)
+            input_format, output_format = self._year_last(year, input_format, output_format)
 
-        return self._parse_date_by_format(input_format, token, output_format)
+        return self._parse_date_by_format(token, input_format, output_format)
 
-    def month_first(self, date, input_format, output_format):
+    def _month_first(self, date, input_format, output_format):
         month = date[0]
         output_format += '%m'
         if len(month) > 3:
@@ -60,10 +60,10 @@ class Parser:
             output_format = "%d/" + output_format
         else:
             year = date[1]
-            input_format, output_format = self.year_last(year, input_format, output_format)
+            input_format, output_format = self._year_last(year, input_format, output_format)
         return input_format, output_format
 
-    def year_last(self, year, input_format, output_format):
+    def _year_last(self, year, input_format, output_format):
         output_format += "/%Y"
         if len(year) <= 2:
             input_format += ' %y'
@@ -71,7 +71,7 @@ class Parser:
             input_format += ' %Y'
         return input_format, output_format
 
-    def day_first(self, date, input_format, output_format):
+    def _day_first(self, date, input_format, output_format):
         input_format += '%d'
         output_format += '%d/%m'
         month = date[1]
@@ -81,8 +81,8 @@ class Parser:
             input_format += ' %b'
         return input_format, output_format
 
-    def _parse_date_by_format(self, format, token, output_format="%d/%m/%Y"):
-        return datetime.strptime(token, format).strftime(output_format)
+    def _parse_date_by_format(self, token, input_format, output_format):
+        return datetime.strptime(token, input_format).strftime(output_format)
 
     def _parse_float(self, f):
         frac_result = str(format(f, ".2f"))
