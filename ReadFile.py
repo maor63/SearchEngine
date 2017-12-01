@@ -15,7 +15,7 @@ class ReadFile:
         docs = []
         i = 1
         for curr_folder in all_sub_folders:
-            msg = "\r Read file {0}/{1}".format(str(i), len(all_sub_folders))
+            msg = "\r Read file {0}/{1} : {2}".format(str(i), len(all_sub_folders), curr_folder)
             print(msg, end="")
             i += 1
             d = None
@@ -28,7 +28,7 @@ class ReadFile:
 
 
             for t in d:
-                self.parser.parse_text(t.text)
+                self.parser.parse(t.text)
 
         return docs
 

@@ -1,84 +1,108 @@
 import re
 from datetime import datetime
+from itertools import groupby
 
 
 class Parser:
     def __init__(self):
         self.contain_number = re.compile(".*\d.*")
-        self.delimiter = re.compile("\s*")
-        self.redundant_signs = re.compile("[():|@^!?&]")
+        self.delimiter = re.compile("[ \t\n]")
+        self.redundant_signs = re.compile("[|@^!?,*;'\"]")
+        self.spacial_signs = re.compile("[&:()+=\]\[]|\.\.+")
+        self.normal_date = re.compile("\d+/\d+|\d+/\d+/\d+")
+        self.number_next_to_letter = re.compile(".*\d[a-zA-Z]+")
 
-    def parse_text(self, text):
+    def parse(self, text):
         text = self.redundant_signs.sub('', text)
+        text = self.spacial_signs.sub(' ', text)
+        text = text.replace(' .', ' ').replace('. ', ' ')
         raw_terms = self.delimiter.split(text)
-        terms = []
-        upper_case_buffer = []
-        date_buffer = []
+        terms = set()
+        number_buffer = ""
+        date_buffer = ""
+        upper_case_buffer = ""
         for raw_term in raw_terms:
+            if raw_term == '':
+                continue
             try:
                 if '-' in raw_term:
-                    self.parse_connected(terms, raw_term)
-                elif self.is_part_of_date(raw_term):
-                    date_buffer.append(raw_term)
-                elif '$' in raw_term:
-                    terms.append(self.parse_token(raw_term))
-                elif self.is_upper_case(raw_term):
-                    upper_case_buffer.append(raw_term)
+                    terms.add(raw_term.lower().replace('-', ' '))
+                    [terms.add(term) for term in raw_term.lower().split('-')]
+                elif self.contain_number.match(raw_term):
+                    date_buffer, number_buffer = self._parse_token_with_number(raw_term, date_buffer, number_buffer,
+                                                                               terms)
                 else:
-                    self.parse_buffers(date_buffer, upper_case_buffer, terms)
-                    date_buffer = []
-                    upper_case_buffer = []
-                    terms.append(raw_term)
-            except:
-                terms.append(raw_term)
-        self.parse_buffers(date_buffer, upper_case_buffer, terms)
+                    date_buffer = self._flush_date_buffer(date_buffer, terms)
+                    if raw_term == 'percent' or raw_term == 'percentage':
+                        terms.add(number_buffer + " percent")
+                        number_buffer = ""
+                    elif self._is_month(raw_term):
+                        date_buffer = (number_buffer + " " + raw_term).strip()
+                        number_buffer = ""
+                    else:
+                        number_buffer = self._flush_buffer(number_buffer, terms)
+                        if not raw_term[0].islower():
+                            raw_term = raw_term.lower()
+                            if upper_case_buffer != "":
+                                terms.add(upper_case_buffer + " " + raw_term)
+                                upper_case_buffer = ""
+                            else:
+                                upper_case_buffer = raw_term
+                        else:
+                            upper_case_buffer = self._flush_buffer(upper_case_buffer, terms)
+                        terms.add(raw_term)
+            except ValueError as e:
+                print(e)
+        self._flush_date_buffer(date_buffer, terms)
+        self._flush_buffer(number_buffer, terms)
+        self._flush_buffer(upper_case_buffer, terms)
         return terms
 
-    def is_upper_case(self, raw_term):
-        return not raw_term.islower() and '.' not in raw_term
+    def _flush_buffer(self, number, terms):
+        if number != "":
+            terms.add(number)
+            number = ""
+        return number
 
-    def parse_buffers(self, date_buffer, upper_case_buffer, terms):
-        if len(upper_case_buffer) > 3:
-            [terms.append(self.parse_token(term)) for term in upper_case_buffer]
-        elif len(upper_case_buffer) != 0:
-            self.parse_upper_case_buffer(upper_case_buffer, terms)
-        if len(date_buffer) != 0:
-            self.parse_date_buffer(date_buffer, terms)
+    def _flush_date_buffer(self, date_buffer, terms):
+        if date_buffer != "":
+            terms.add(self._parse_date(date_buffer))
+            date_buffer = ""
+        return date_buffer
 
-    def parse_date_buffer(self, date_buffer, terms):
-        token = " ".join(date_buffer)
-        terms.append(self.parse_token(token))
+    def _parse_token_with_number(self, raw_term, date_buffer, number, terms):
+        raw_term = raw_term.replace('th', '')
+        raw_term = raw_term.replace('O', '0')
+        if self._is_number(raw_term):
+            if date_buffer != "" and len(date_buffer.split(' ')) < 3:
+                date_buffer += " " + raw_term
+            else:
+                if number != "":
+                    terms.add(number)
+                number = self._parse_number(raw_term)
 
-    def parse_upper_case_buffer(self, buffer, terms):
-        token = " ".join(buffer)
-        self.parse_upper_case(terms, token)
-
-    def parse_upper_case(self, terms, token):
-        term = self.parse_token(token)
-        terms.append(term)
-        if ' ' in token:
-            [terms.append(self.parse_token(term)) for term in token.split(' ')]
-
-    def parse_token(self, token):
-        if self.contain_number.match(token):
-            token = token.replace(',', '')
-            if '%' in token:
-                return self.parse_precentage(token, '%')
-            elif 'percentage' in token:
-                return self.parse_precentage(token, 'percentage')
-            elif 'percent' in token:
-                return self.parse_precentage(token, 'percent')
-            elif '-' in token:
-                return token
-            elif '$' in token:
-                return self._parse_number(token.replace('$', '')) + " dollar"
-            elif self.is_number(token):
-                return self._parse_number(token)
-            return self._parse_date(token)
+        elif '/' in raw_term:
+            if self.normal_date.match(raw_term):
+                terms.add(raw_term)
+            else:
+                [self._parse_token_with_number(term, date_buffer, number, terms) for term in raw_term.split('/')]
+        elif '$' in raw_term:
+            if re.match("\$\d+b.*|\$\d+\.\d+b.*", raw_term):
+                terms.add(raw_term[raw_term.find("$") + 1:raw_term.find("b")] + " dollar")
+                terms.add("billion")
+            elif re.match("\$\d+m.*|\$\d+\.\d+m.*", raw_term):
+                terms.add(raw_term[raw_term.find("$") + 1:raw_term.find("m")] + " dollar")
+                terms.add("million")
+            else:
+                raw_term = raw_term[raw_term.find("$"):]
+                terms.add(self._parse_number(raw_term.replace('$', '')) + " dollar")
+        elif '%' in raw_term:
+            terms.add(self._parse_precentage(raw_term, '%'))
         else:
-            return token.lower()
+            terms.add(raw_term)
+        return date_buffer, number
 
-    def parse_precentage(self, token, type):
+    def _parse_precentage(self, token, type):
         return self._parse_number(token.replace(type, '')) + ' percent'
 
     def _parse_number(self, token):
@@ -97,7 +121,7 @@ class Parser:
         input_format = ''
         output_format = ''
         date = token.split(' ')
-        if self.is_number(date[0]):
+        if self._is_number(date[0]):
             input_format, output_format = self._day_first(date, input_format, output_format)
         else:
             input_format, output_format = self._month_first(date, input_format, output_format)
@@ -147,7 +171,7 @@ class Parser:
         frac_result = str(format(f, ".2f"))
         return frac_result.replace('.00', '')
 
-    def is_month(self, raw_term):
+    def _is_month(self, raw_term):
         try:
             if len(raw_term) > 3:
                 datetime.strptime(raw_term, "%B")
@@ -157,18 +181,9 @@ class Parser:
         except ValueError:
             return False
 
-    def is_part_of_date(self, raw_term):
-        return self.is_number(raw_term) or self.is_month(raw_term)
-
-    def is_number(self, raw_term):
+    def _is_number(self, raw_term):
         try:
             float(raw_term)
             return True
         except ValueError:
             return False
-
-    def parse_connected(self, terms, token):
-        term = self.parse_token(token)
-        terms.append(term)
-        if '-' in token:
-            [terms.append(self.parse_token(term)) for term in token.split('-')]

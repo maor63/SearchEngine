@@ -11,7 +11,7 @@ def Main():
     # v.start()
     start = time.time()
     read_file = ReadFile()
-    read_file.read_files("./corpus/")
+    read_file.read_files("./LA/")
     end = time.time()
     print("Read file time: {0}".format(str(end - start)))
 
