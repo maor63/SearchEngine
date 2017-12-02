@@ -122,6 +122,12 @@ class ParserTest(unittest.TestCase):
         expected = {"long", "gilt", "future", "moved", "down", "1/16", "to", "trade", "around", "103", "1/32"}
         self.assertSetEqual(set(result.keys()), expected)
 
+    def test_parse_text_with_number_string(self):
+        text = "2Telespazio 1992 Investments"
+        result = self.parser.parse_text(text)
+        expected = ["2", "Telespazio", "1992", "Investments"]
+        self.assertListEqual(result, expected)
+
     def test_parse_text(self):
         text = '''Jiang Zemin 5.79 today the Chinese Army 4 to strengthen its
     own building mission of 12 September 2006 and JULY 22
