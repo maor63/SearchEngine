@@ -7,7 +7,7 @@ from ReadFile import ReadFile
 class Master:
     def __init__(self):
         self.file_reader = ReadFile()
-        self.parser = Parser()
+        self.parser = Parser("./LA/stop_words.txt")
 
     def run_process(self):
         executor = ThreadPoolExecutor(max_workers=4)

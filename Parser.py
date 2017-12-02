@@ -1,9 +1,10 @@
+import os
 import re
 from datetime import datetime
 
 
 class Parser:
-    def __init__(self):
+    def __init__(self, stop_word_path):
         self.contain_number = re.compile(".*\d.*")
         self.delimiter = re.compile("[ \t\n]")
         self.redundant_signs = re.compile("[|@^!?,*;'\"]")
@@ -13,6 +14,13 @@ class Parser:
         self.empty_term = re.compile("\s*")
 
         self.init_data_structures()
+        self.stop_words = self._set_of_stopwords(stop_word_path)
+
+    def _set_of_stopwords(self, path):
+        if not os.path.exists(path):
+            return set()
+        with open(path) as f:
+            return set((line.strip() for line in f.readlines()))
 
     def parse(self, text):
         text = self.redundant_signs.sub('', text)
@@ -53,7 +61,7 @@ class Parser:
         elif '-' in raw_term:
             term = raw_term.lower().replace('-', ' ').strip()
             if not self.contain_number.match(term):
-                self.add_to_dict(self.terms, term)
+                self.add_to_dict(term, self.terms)
             [self._parse_token(term) for term in raw_term.lower().split('-')]
         elif self.contain_number.match(raw_term):
             self._token_with_number(raw_term)
@@ -63,7 +71,7 @@ class Parser:
     def _token_without_number(self, raw_term):
         self._date_buffer = self._flush_date_buffer(self._date_buffer, self.terms)
         if raw_term == 'percent' or raw_term == 'percentage':
-            self.add_to_dict(self.terms, (self._number_buffer + " percent"))
+            self.add_to_dict((self._number_buffer + " percent"), self.terms)
             self._number_buffer = ""
         elif self._is_month(raw_term):
             self._date_buffer = (self._number_buffer + " " + raw_term).strip()
@@ -73,13 +81,13 @@ class Parser:
             if not raw_term[0].islower():
                 raw_term = raw_term.lower()
                 if self._upper_case_buffer != "":
-                    self.add_to_dict(self.terms, (self._upper_case_buffer + " " + raw_term))
+                    self.add_to_dict((self._upper_case_buffer + " " + raw_term), self.terms)
                     self._upper_case_buffer = ""
                 else:
                     self._upper_case_buffer = raw_term
             else:
                 self._upper_case_buffer = self._flush_buffer(self._upper_case_buffer, self.terms)
-            self.add_to_dict(self.terms, raw_term)
+            self.add_to_dict(raw_term, self.terms)
 
     def _token_with_number(self, raw_term):
         raw_term = raw_term.replace('th', '')
@@ -89,39 +97,39 @@ class Parser:
                 self._date_buffer += " " + raw_term
             else:
                 if self._number_buffer != "":
-                    self.add_to_dict(self.terms, self._number_buffer)
+                    self.add_to_dict(self._number_buffer, self.terms)
                 self._number_buffer = self._parse_number(raw_term)
 
         elif '/' in raw_term:
             if self.normal_date.match(raw_term):
-                self.add_to_dict(self.terms, raw_term)
+                self.add_to_dict(raw_term, self.terms)
             else:
                 [self._parse_token_with_number(term, self._date_buffer, self._number_buffer, self.terms) for term in
                  raw_term.split('/')]
         elif '$' in raw_term:
             if re.match("\$\d+b.*|\$\d+\.\d+b.*", raw_term):
-                self.add_to_dict(self.terms, (raw_term[raw_term.find("$") + 1:raw_term.find("b")] + " dollar"))
-                self.add_to_dict(self.terms, "billion")
+                self.add_to_dict((raw_term[raw_term.find("$") + 1:raw_term.find("b")] + " dollar"), self.terms)
+                self.add_to_dict("billion", self.terms)
             elif re.match("\$\d+m.*|\$\d+\.\d+m.*", raw_term):
-                self.add_to_dict(self.terms, (raw_term[raw_term.find("$") + 1:raw_term.find("m")] + " dollar"))
-                self.add_to_dict(self.terms, "million")
+                self.add_to_dict((raw_term[raw_term.find("$") + 1:raw_term.find("m")] + " dollar"), self.terms)
+                self.add_to_dict("million", self.terms)
             else:
                 raw_term = raw_term[raw_term.find("$") + 1:]
-                self.add_to_dict(self.terms, (self._parse_number(raw_term.replace('$', '')) + " dollar"))
+                self.add_to_dict((self._parse_number(raw_term.replace('$', '')) + " dollar"), self.terms)
         elif '%' in raw_term:
-            self.add_to_dict(self.terms, (self._parse_precentage(raw_term, '%')))
+            self.add_to_dict((self._parse_precentage(raw_term, '%')), self.terms)
         else:
-            self.add_to_dict(self.terms, raw_term)
+            self.add_to_dict(raw_term, self.terms)
 
     def _flush_buffer(self, number, terms):
         if number != "":
-            self.add_to_dict(terms, number)
+            self.add_to_dict(number, terms)
             number = ""
         return number
 
     def _flush_date_buffer(self, date_buffer, terms):
         if date_buffer != "":
-            self.add_to_dict(terms,(self._parse_date(date_buffer)))
+            self.add_to_dict((self._parse_date(date_buffer)), terms)
             date_buffer = ""
         return date_buffer
 
@@ -133,28 +141,28 @@ class Parser:
                 date_buffer += " " + raw_term
             else:
                 if number_buffer != "":
-                    self.add_to_dict(terms, number_buffer)
+                    self.add_to_dict(number_buffer, terms)
                 number_buffer = self._parse_number(raw_term)
 
         elif '/' in raw_term:
             if self.normal_date.match(raw_term):
-                self.add_to_dict(terms, raw_term)
+                self.add_to_dict(raw_term, terms)
             else:
                 [self._parse_token_with_number(term, date_buffer, number_buffer, terms) for term in raw_term.split('/')]
         elif '$' in raw_term:
             if re.match("\$\d+b.*|\$\d+\.\d+b.*", raw_term):
-                self.add_to_dict(terms,(raw_term[raw_term.find("$") + 1:raw_term.find("b")] + " dollar"))
-                self.add_to_dict(terms, "billion")
+                self.add_to_dict((raw_term[raw_term.find("$") + 1:raw_term.find("b")] + " dollar"), terms)
+                self.add_to_dict("billion", terms)
             elif re.match("\$\d+m.*|\$\d+\.\d+m.*", raw_term):
-                self.add_to_dict(terms,(raw_term[raw_term.find("$") + 1:raw_term.find("m")] + " dollar"))
-                self.add_to_dict(terms, "million")
+                self.add_to_dict((raw_term[raw_term.find("$") + 1:raw_term.find("m")] + " dollar"), terms)
+                self.add_to_dict("million", terms)
             else:
                 raw_term = raw_term[raw_term.find("$") + 1:]
-                self.add_to_dict(terms,(self._parse_number(raw_term.replace('$', '')) + " dollar"))
+                self.add_to_dict((self._parse_number(raw_term.replace('$', '')) + " dollar"), terms)
         elif '%' in raw_term:
-            self.add_to_dict(terms,(self._parse_precentage(raw_term, '%')))
+            self.add_to_dict((self._parse_precentage(raw_term, '%')), terms)
         else:
-            self.add_to_dict(terms, raw_term)
+            self.add_to_dict(raw_term, terms)
         return date_buffer, number_buffer
 
     def _parse_precentage(self, token, type):
@@ -243,7 +251,9 @@ class Parser:
         except ValueError:
             return False
 
-    def add_to_dict(self, terms, term):
+    def add_to_dict(self, term, terms):
+        if term in self.stop_words:
+            return
         if term not in terms:
             terms[term] = 0
         terms[term] += 1

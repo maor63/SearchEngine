@@ -1,5 +1,5 @@
 import re
-from os import listdir
+import os
 
 from Document import Document
 from Parser import Parser
@@ -8,10 +8,10 @@ from Parser import Parser
 class ReadFile:
     def __init__(self):
         self.text_tags = re.compile("\[.*]|<.*>")
-        self.parser = Parser()
+        self.parser = Parser("")
 
     def read_files(self, path, threshold=1000):
-        all_sub_folders = listdir(path)
+        all_sub_folders = os.listdir(path)
         docs = []
         i = 1
         for curr_folder in all_sub_folders:
@@ -42,6 +42,8 @@ class ReadFile:
 
     def read_from_file(self, clean_fn, file_path):
         docs = []
+        if not os.path.exists(file_path):
+            return docs
         file = open(file_path)
         file_text = file.read()
         raw_docs = file_text.split("</DOC>\n")

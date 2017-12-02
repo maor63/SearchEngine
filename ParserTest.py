@@ -5,10 +5,10 @@ from Parser import Parser
 
 class ParserTest(unittest.TestCase):
     def setUp(self):
-        self.parser = Parser()
+        self.parser = Parser("")
 
     def test_parse_rational_number(self):
-        parser = Parser()
+        parser = Parser("")
         result = parser.parse("3.55555 5 7.9")
         self.assertSetEqual({"3.56", '5', '7.90'}, set(result.keys()))
 
