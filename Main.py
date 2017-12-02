@@ -1,6 +1,7 @@
 import time
 
 from Controller import Controller
+from Master import Master
 from ReadFile import ReadFile
 from View import View
 
@@ -10,8 +11,8 @@ def Main():
     # v = View(c)
     # v.start()
     start = time.time()
-    read_file = ReadFile()
-    read_file.read_files("./LA/")
+    master = Master()
+    master.run_process()
     end = time.time()
     print("Read file time: {0}".format(str(end - start)))
 

@@ -10,25 +10,24 @@ class ReadFile:
         self.text_tags = re.compile("\[.*]|<.*>")
         self.parser = Parser()
 
-    def read_files(self, path):
+    def read_files(self, path, threshold=1000):
         all_sub_folders = listdir(path)
         docs = []
         i = 1
         for curr_folder in all_sub_folders:
-            msg = "\r Read file {0}/{1} : {2}".format(str(i), len(all_sub_folders), curr_folder)
-            print(msg, end="")
+            msg = "Read file {0}/{1} : {2}".format(str(i), len(all_sub_folders), curr_folder)
+            print(msg)
             i += 1
-            d = None
             if curr_folder.startswith("LA"):
                 d = self.read_docs_from_LA_file(path + curr_folder + "/" + curr_folder)
             elif curr_folder.startswith("FB"):
                 d = self.read_docs_from_FB_file(path + curr_folder + "/" + curr_folder)
             else:
                 d = self.read_docs_from_FT_file(path + curr_folder + "/" + curr_folder)
-
-
-            for t in d:
-                self.parser.parse(t.text)
+            docs.extend(d)
+            if len(docs) >= threshold:
+                yield docs
+                docs = []
 
         return docs
 
