@@ -11,7 +11,7 @@ class Master:
 
     def run_process(self):
         executor = ThreadPoolExecutor(max_workers=4)
-        total_docs = self.file_reader.read_files("./LA/", 1000)
+        total_docs = self.file_reader.read_files("./corpus/", 1000)
         for next_docs in total_docs:
             texts = []
             for doc in next_docs:
