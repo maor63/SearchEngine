@@ -7,8 +7,11 @@ class Parser:
     def __init__(self, stop_word_path):
         self.contain_number = re.compile(".*\d.*")
         self.delimiter = re.compile("[ \t\n]")
-        self.redundant_signs = re.compile("[|@^!?,*;'\"]")
-        self.spacial_signs = re.compile("[&:()+=\]\[]|\.\.+")
+        self.redundant_signs = ["|", "@", "^", "!", "?", "*", ";", "'", "\\", '"', '&', ':', '(', ')', '+', '=',
+                                ']', '[', '\n', '\t']
+        self.months = {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october",
+                       "november", "december", "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "oct", "nov",
+                       "dec"}
         self.normal_date = re.compile("\d+/\d+|\d+/\d+/\d+")
         self.number_next_to_letter = re.compile(".*\d[a-zA-Z]+")
         self.empty_term = re.compile("\s*")
@@ -23,13 +26,15 @@ class Parser:
             return set((line.strip() for line in f.readlines()))
 
     def parse(self, text):
-        text = self.redundant_signs.sub('', text)
-        text = self.spacial_signs.sub(' ', text)
+        for sign in self.redundant_signs:
+            text = text.replace(sign, ' ')
+        text = text.replace(",", '')
         text = text.replace(' .', ' ').replace('. ', ' ')
-        raw_terms = self.delimiter.split(text)
+        raw_terms = text.split(' ')
 
         self.init_data_structures()
-        return self._parse_raw_terms(raw_terms)
+        terms = self._parse_raw_terms(raw_terms)
+        return terms
 
     def _parse_raw_terms(self, raw_terms):
         for raw_term in raw_terms:
@@ -69,6 +74,7 @@ class Parser:
             self._token_without_number(raw_term)
 
     def _token_without_number(self, raw_term):
+        pass
         self._date_buffer = self._flush_date_buffer(self._date_buffer, self.terms)
         if raw_term == 'percent' or raw_term == 'percentage':
             self.add_to_dict((self._number_buffer + " percent"), self.terms)
@@ -235,14 +241,7 @@ class Parser:
         return frac_result.replace('.00', '')
 
     def _is_month(self, raw_term):
-        try:
-            if len(raw_term) > 3:
-                datetime.strptime(raw_term, "%B")
-            else:
-                datetime.strptime(raw_term, "%b")
-            return True
-        except ValueError:
-            return False
+        return raw_term.lower() in self.months
 
     def _is_number(self, raw_term):
         try:
