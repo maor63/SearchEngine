@@ -163,7 +163,7 @@ class ParserTest(unittest.TestCase):
         self.assertSetEqual(set(result.keys()), expected)
 
     def test_parse_text_with_million_billion_dollar(self):
-        text = "$5.67m Union $12b and $45m and $8.45bn"
+        text = "$5.67m Union ^ $12b and $45m and $8.45bn"
         result = self.parser.parse(text)
         expected = {'8.45 dollar', 'million', 'union', '12 dollar', '45 dollar', 'and', 'billion', '5.67 dollar'}
         self.assertSetEqual(set(result.keys()), expected)
