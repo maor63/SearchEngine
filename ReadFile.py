@@ -70,10 +70,11 @@ class ReadFile:
         return d
 
     def remove_p_tags(self, doc):
-        text = doc.text.split("<P>\n</P>")
-        text[0] = text[0].replace("<P>\n", "")
-        text[len(text) - 1] = text[len(text) - 1].replace("</P>", "")
-        doc.text = "\n".join(text)
+        # text = doc.text.split("<P>\n</P>")
+        # text[0] = text[0].replace("<P>\n", "")
+        # text[len(text) - 1] = text[len(text) - 1].replace("</P>", "")
+        # doc.text = "\n".join(text)
+        doc.text = self.text_tags.sub('', doc.text)
         return doc
 
     def remove_language_artical_type_rows(self, doc):
