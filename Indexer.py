@@ -1,11 +1,12 @@
 from collections import defaultdict
+from sortedcollections import SortedDict
 
 
 class Indexer:
     def __init__(self, path=""):
         self.docs_posting = []
         self.terms_posting = []
-        self.term_to_doc_id = defaultdict(dict)
+        self.term_to_doc_id = SortedDict()
         self.path = path
         self._index = 1
 
@@ -17,6 +18,8 @@ class Indexer:
         self.docs_posting.append(doc_row)
 
         for term in terms_dict:
+            if term not in self.term_to_doc_id:
+                self.term_to_doc_id[term] = {}
             self.term_to_doc_id[term][doc.id] = terms_dict[term]
 
     def flush(self):
@@ -39,5 +42,5 @@ class Indexer:
 
         self.docs_posting = []
         self.terms_posting = []
-        self.term_to_doc_id = defaultdict(dict)
+        self.term_to_doc_id = SortedDict()
         self._index += 1

@@ -29,7 +29,7 @@ class ReadFile:
                 yield docs
                 docs = []
 
-        return docs
+        yield docs
 
     def read_docs_from_FB_file(self, file_path):
         return self.read_from_file(self.remove_language_artical_type_rows, file_path)

@@ -1,5 +1,6 @@
 from nltk.stem.snowball import EnglishStemmer, PorterStemmer
 from collections import defaultdict
+# from nltk.stem.porter import PorterStemmer
 
 
 class Stemmer:

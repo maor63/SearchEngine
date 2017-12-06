@@ -11,14 +11,14 @@ from Stemmer import Stemmer
 class Master:
     def __init__(self):
         self.file_reader = ReadFile()
-        self.parser = Parser("./LA/stop_words.txt")
+        self.parser = Parser("stop_words.txt")
         self.stemmer = Stemmer()
         self.indexer = Indexer("./postings/")
 
     def run_process(self):
-        to_stem = True
-        executor = ThreadPoolExecutor(max_workers=4)
-        total_docs = self.file_reader.read_files("./LA/", 1000)
+        to_stem = False
+        executor = ThreadPoolExecutor(max_workers=7)
+        total_docs = self.file_reader.read_files("./corpus1/", 5000)
         threads = []
         stem = True
         for next_docs in total_docs:
@@ -32,6 +32,7 @@ class Master:
                 self.indexer.index(terms_dict, doc)
             self.indexer.flush()
             print("batch ended")
+        print("end")
 
     def combine_dicts(self, terms):
         new_term_dict = defaultdict(int)

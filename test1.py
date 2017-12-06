@@ -1,2 +1,3 @@
-print("".join(i+" " if i.isdigit() else i for i in "2Titanic"))
 
+atats = {'a':1000, 'b':3000, 'c': 100}
+print(max(atats, key=atats.get))

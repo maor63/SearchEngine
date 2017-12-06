@@ -1,14 +1,17 @@
 import os
 import re
 from datetime import datetime
+from  collections import Counter, deque
 from nltk.stem.snowball import EnglishStemmer
 
+
+# import PyStemmer
 
 class Parser:
     def __init__(self, stop_word_path):
         self.contain_number = re.compile(".*\d.*")
         self.redundant_signs = ["|", "@", "^", "!", "?", "*", ";", "'", "\\", '"', '&', ':', '(', ')', '+', '=',
-                                ']', '[', '\n', '\t']
+                                ']', '[', '\n', '\t', '#', ' %']
         self.months = {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october",
                        "november", "december", "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "oct", "nov",
                        "dec"}
@@ -16,6 +19,12 @@ class Parser:
 
         self.init_data_structures()
         self.stop_words = self._set_of_stopwords(stop_word_path)
+
+    def init_data_structures(self):
+        self.terms = deque()
+        self._date_buffer = ""
+        self._number_buffer = [""]
+        self._upper_case_buffer = []
 
     def _set_of_stopwords(self, path):
         if not os.path.exists(path):
@@ -45,8 +54,12 @@ class Parser:
         self._flush_number_buffer()
 
         self._flush_upper_case_buffer()
-        self._delete_empty_terms()
-        return self.terms
+        # self._delete_empty_terms()
+        self.terms = filter(lambda x: not x.startswith('.'), self.terms)
+        self.terms = filter(lambda x: not x.startswith('$'), self.terms)
+        self.terms = filter(lambda x: not x.startswith('/'), self.terms)
+        self.terms = filter(lambda x: x != '', self.terms)
+        return dict(Counter(self.terms))
 
     def _flush_upper_case_buffer(self):
         if self._upper_case_buffer != []:
@@ -64,12 +77,6 @@ class Parser:
             if term == '' or term == ' ' or term == '  ':
                 del self.terms[term]
 
-    def init_data_structures(self):
-        self.terms = {}
-        self._date_buffer = ""
-        self._number_buffer = [""]
-        self._upper_case_buffer = []
-
     def _parse_token(self, raw_term):
         if raw_term == '' or raw_term == ' ' or raw_term == '  ':
             return
@@ -85,7 +92,7 @@ class Parser:
 
     def _token_with_number(self, raw_term):
         raw_term = raw_term.replace('th', '')
-        raw_term = raw_term.replace('O', '0')
+        # raw_term = raw_term.replace('O', '0')
         if self._is_number(raw_term):
             if self._date_buffer != "" and len(self._date_buffer.split(' ')) < 3:
                 self._date_buffer += " " + raw_term
@@ -220,6 +227,5 @@ class Parser:
     def add_to_dict(self, term):
         if term in self.stop_words:
             return
-        if term not in self.terms:
-            self.terms[term] = 0
-        self.terms[term] += 1
+        # self.terms[term] += 1
+        self.terms.append(term.lstrip())
