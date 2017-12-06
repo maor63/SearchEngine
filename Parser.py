@@ -92,7 +92,6 @@ class Parser:
 
     def _token_with_number(self, raw_term):
         raw_term = raw_term.replace('th', '')
-        # raw_term = raw_term.replace('O', '0')
         if self._is_number(raw_term):
             if self._date_buffer != "" and len(self._date_buffer.split(' ')) < 3:
                 self._date_buffer += " " + raw_term

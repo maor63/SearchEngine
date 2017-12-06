@@ -122,11 +122,6 @@ class ParserTest(unittest.TestCase):
         expected = {"long", "gilt", "future", "moved", "down", "1/16", "to", "trade", "around", "103", "1/32"}
         self.assertSetEqual(set(result.keys()), expected)
 
-    def test_parse_text_with_number_string(self):
-        text = "2Telespazio 1992 Investments"
-        result = self.parser.parse_text(text)
-        expected = ["2", "Telespazio", "1992", "Investments"]
-        self.assertListEqual(result, expected)
 
     def test_parse_text(self):
         text = '''Jiang Zemin 5.79 today the Chinese Army 4 to strengthen its
@@ -151,7 +146,7 @@ class ParserTest(unittest.TestCase):
         self.assertSetEqual(set(result.keys()), expected)
 
     def test_parse_text_with_dollar_3(self):
-        text = "Soviet Union (Kc19.8 billion, $66O million)"
+        text = "Soviet Union (Kc19.8 billion, $660 million)"
         result = self.parser.parse(text)
         expected = {'million', 'soviet', 'soviet union', 'union', 'Kc19.8', 'billion', '660 dollar'}
         self.assertSetEqual(set(result.keys()), expected)
