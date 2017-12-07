@@ -15,6 +15,6 @@ class StemmerTest(unittest.TestCase):
 
     def test_steming_dict_2(self):
         t = {"read": 3, "reading": 4, "take": 2}
-        result = self.stemmer.stem(t)
+        result = self.stemmer.stem_term_dict(t)
         expected = {"read": 7, "take": 2}
         self.assertDictEqual(result, expected)
