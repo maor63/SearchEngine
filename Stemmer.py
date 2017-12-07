@@ -1,5 +1,5 @@
 from nltk.stem.snowball import EnglishStemmer, PorterStemmer
-from collections import defaultdict, Counter
+from collections import defaultdict
 # from nltk.stem.porter import PorterStemmer
 
 
@@ -7,8 +7,8 @@ class Stemmer:
     def __init__(self):
         self.stemmer = EnglishStemmer()
 
-    def stem(self, terms_dict):
-        new_term_dict = Counter()
+    def stem_term_dict(self, terms_dict):
+        new_term_dict = defaultdict(int)
         for term in terms_dict:
             stemed_term = self.stemmer.stem(term)
             new_term_dict[stemed_term] += terms_dict[term]

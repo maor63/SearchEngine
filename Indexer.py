@@ -1,19 +1,19 @@
-import heapq
-import linecache
-from collections import defaultdict
-
 import os
+from collections import defaultdict, deque
 from sortedcollections import SortedDict
+import shutil
 
 
 class Indexer:
-    def __init__(self, path=""):
+    def __init__(self, path):
+        self._TermDictionary = {}
+        self._DocsDictionary = {}
+
         self.docs_posting = []
         self.terms_posting = []
         self.term_to_doc_id = SortedDict()
         self.path = path
-        self._index = 1
-        f_docs = open("{0}docs".format(self.path), 'w')
+        self._index = 0
 
     def index(self, terms_dict, doc):
         if len(terms_dict) == 0:
@@ -27,6 +27,10 @@ class Indexer:
                 self.term_to_doc_id[term] = {}
             self.term_to_doc_id[term][doc.id] = terms_dict[term]
 
+    def clean_postings(self):
+        for f in os.listdir(self.path):
+            os.remove(self.path + f)
+
     def flush(self):
         for term in self.term_to_doc_id:
             term_row = term + "#" + str(len(self.term_to_doc_id[term])) + "#"
@@ -35,15 +39,15 @@ class Indexer:
             term_row += '\n'
             self.terms_posting.append(term_row)
 
-        f_terms = open("{0}{1}_terms".format(self.path, str(self._index)), 'w')
-        f_terms.writelines(self.terms_posting)
-        # f_terms.flush()
-        f_terms.close()
+        if len(self.terms_posting) > 0:
+            f_terms = open("{0}{1}_terms".format(self.path, str(self._index)), 'w')
+            f_terms.writelines(self.terms_posting)
+            f_terms.close()
 
-        f_docs = open("{0}docs".format(self.path), 'a')
-        f_docs.writelines(self.docs_posting)
-        # f_docs.flush()
-        f_docs.close()
+        if len(self.docs_posting) > 0:
+            f_docs = open("{0}{1}_docs".format(self.path, str(self._index)), 'w')
+            f_docs.writelines(self.docs_posting)
+            f_docs.close()
 
         self.docs_posting = []
         self.terms_posting = []
@@ -51,75 +55,54 @@ class Indexer:
         self._index += 1
 
     def merge(self):
-        file_terms = list((filter(lambda f: "terms" in f, os.listdir(self.path))))
-        num = 1
-        # file_terms.remove(file_terms[8])
-        open(self.path + 'merged', 'w')
-        while len(file_terms) > 1:
-            file1 = file_terms[0]
-            file2 = file_terms[1]
-            self.mergefiles(open(self.path + file1), open(self.path + file2), 'merged', num)
-            file_terms.remove(file1)
-            file_terms.remove(file2)
-            os.remove(self.path + file1)
-            os.remove(self.path + file2)
-            file_terms.append("merged" + str(num) + "_terms")
-            num += 1
-        os.remove(self.path + 'merged')
+        files_names = list(filter(lambda f: "terms" in f, os.listdir(self.path)))
+        files = list(map(lambda f: open(self.path + f), files_names))
+        self._TermDictionary = self.merge_files("merged_terms.txt", files, self.merge_term_line)
 
-    def mergefiles(self, file1, file2, output, num):
-        d = SortedDict()
-        x = file1.readline()
-        y = file2.readline()
-        if y != '':
-            term2, freq2, doc_list2 = y.split('#')
-        while x != '':
-            term1, freq1, doc_list1 = x.split('#')
-            if term1 < term2:
-                d[term1] = x
-                x = file1.readline()
-                if x == '':
+        files_names = list(filter(lambda f: "docs" in f, os.listdir(self.path)))
+        files = list(map(lambda f: open(self.path + f), files_names))
+        self._DocsDictionary = self.merge_files('merged_docs.txt', files, self.merdge_doc_line)
+
+    def merge_files(self, output_file, input_files, merge_line_fn):
+        dictionary = {}
+        file_row = 1
+        output_file = open(self.path + output_file, 'w')
+        while len(input_files) > 0:
+            sorted_lines = SortedDict()
+            files_to_delete = set()
+            lines_limit = 3
+            for i in range(lines_limit):
+                remove = False
+                for file in input_files:
+                    line = file.readline()
+                    if line == '':
+                        file.close()
+                        files_to_delete.add(file.name)
+                        remove = True
+                        continue
+                    merge_line_fn(line, sorted_lines)
+                if remove:
                     break
-                term1, freq1, doc_list1 = x.split('#')
-            elif term2 < term1:
-                d[term2] = y
-                y = file2.readline()
-                if y == '':
-                    break
-                term2, freq2, doc_list2 = y.split('#')
-            else:
-                freq = int(freq1) + int(freq2)
-                doc_list = doc_list1.rstrip() + doc_list2
-                d[term1] = '#'.join([term1, str(freq), doc_list])
-                x = file1.readline()
-                if x == '':
-                    break
-                term1, freq1, doc_list1 = x.split('#')
-                y = file2.readline()
-                if y == '':
-                    break
-                term2, freq2, doc_list2 = y.split('#')
+            if len(files_to_delete) > 0:
+                [os.remove(file) for file in files_to_delete]
+            for term in sorted_lines:
+                output_file.write(sorted_lines[term])
+                dictionary[term] = file_row
+                file_row += 1
+            output_file.flush()
+            input_files = list(filter(lambda x: x.name not in files_to_delete, input_files))
+        output_file.close()
+        return dictionary
 
-        while y != '':
-            d[term2] = y
-            y = file2.readline()
-            if y == '':
-                break
-            term2, freq2, doc_list2 = y.split('#')
+    def merge_term_line(self, line, sorted_lines):
+        term, frec, doc_list = line.split('#')
+        if term not in sorted_lines:
+            sorted_lines[term] = line
+        else:
+            term2, frec2, doc_list2 = sorted_lines[term].split('#')
+            sorted_lines[term] = '#'.join(
+                [term, str(int(frec) + int(frec2)), doc_list.rstrip() + doc_list2])
 
-        file1.close()
-        file2.close()
-
-        print("end")
-        l = []
-        for term in d:
-            l.append(d[term])
-
-
-        f_terms = open("{0}{1}{2}_terms".format(self.path, output, num), 'w')
-        f_terms.writelines(l)
-        # f_terms.flush()
-        f_terms.close()
-
-        self.docs_posting = []
-        self.terms_posting = []
+    def merdge_doc_line(self, line, sorted_lines):
+        doc_id, most_frec_term, size = line.split('#')
+        sorted_lines[doc_id] = line
