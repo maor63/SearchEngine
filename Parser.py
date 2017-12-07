@@ -48,7 +48,8 @@ class Parser:
             try:
                 self._parse_token(raw_term)
             except ValueError as e:
-                print(e)
+                # print(e)
+                pass
         self._flush_date_buffer()
 
         self._flush_number_buffer()

@@ -18,7 +18,7 @@ class Master:
     def run_process(self):
         to_stem = False
         executor = ThreadPoolExecutor(max_workers=7)
-        total_docs = self.file_reader.read_files("./corpus1/", 5000)
+        total_docs = self.file_reader.read_files("./corpus/", 50000)
         threads = []
         stem = True
         for next_docs in total_docs:
@@ -33,6 +33,7 @@ class Master:
             self.indexer.flush()
             print("batch ended")
         print("end")
+        self.indexer.merge()
 
     def combine_dicts(self, terms):
         new_term_dict = defaultdict(int)
