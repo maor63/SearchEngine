@@ -9,30 +9,39 @@ from Stemmer import Stemmer
 
 
 class Master:
-    def __init__(self):
+    def __init__(self, docs_path, postings_path):
         self.file_reader = ReadFile()
-        self.parser = Parser("stop_words.txt")
+        self.docs_path = docs_path
+        self.parser = Parser("{0}/stop_words.txt".format(docs_path))
         self.stemmer = Stemmer()
-        self.indexer = Indexer("./postings/")
+        self.indexer = Indexer("{0}/".format(postings_path))
+
+    def clean_indexing(self):
         self.indexer.clean_postings()
 
-    def run_process(self):
-        to_stem = True
-        total_docs = self.file_reader.read_files("./FB/", 5000)
+    def run_process(self, stemming=True):
+        total_docs = self.file_reader.read_files("{0}/".format(self.docs_path), 500)
+
         for next_docs in total_docs:
             batch_terms = []
 
             for doc in next_docs:
                 terms_dict = self.parse_text(doc.text)
-                if to_stem:
+                if stemming:
                     terms_dict = self.stemmer.stem(terms_dict)
                 batch_terms.append(terms_dict)
                 self.indexer.index(terms_dict, doc)
             self.indexer.flush()
             print("batch ended")
         print("end")
-        self.indexer.merge()
-        self.indexer.cache()
+        terms_postings = "merged_terms_postings.txt"
+        docs_postings = 'merged_docs_postings.txt'
+        if stemming:
+            terms_postings = "stemed_" + terms_postings
+            docs_postings = "stemed_" + docs_postings
+        self.indexer.merge(terms_postings, docs_postings)
+        # self.indexer.cache()
+        return self.indexer.TermDictionary, self.indexer.DocsDictionary
 
     def combine_dicts(self, terms):
         new_term_dict = defaultdict(int)

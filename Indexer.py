@@ -53,14 +53,14 @@ class Indexer:
         self.term_to_doc_id = SortedDict()
         self._index += 1
 
-    def merge(self):
-        files_names = list(filter(lambda f: "terms" in f, os.listdir(self.path)))
+    def merge(self, terms_output_file, docs_output_file):
+        files_names = list(filter(lambda f: f.endswith("terms"), os.listdir(self.path)))
         files = list(map(lambda f: open(self.path + f), files_names))
-        self.TermDictionary = self.merge_files("merged_terms.txt", files, self.merge_term_line)
+        self.TermDictionary = self.merge_files(terms_output_file, files, self.merge_term_line)
 
-        files_names = list(filter(lambda f: "docs" in f, os.listdir(self.path)))
+        files_names = list(filter(lambda f: f.endswith("docs"), os.listdir(self.path)))
         files = list(map(lambda f: open(self.path + f), files_names))
-        self.DocsDictionary = self.merge_files('merged_docs.txt', files, self.merdge_doc_line)
+        self.DocsDictionary = self.merge_files(docs_output_file, files, self.merdge_doc_line)
 
     def merge_files(self, output_file, input_files, merge_line_fn):
         dictionary = {}
