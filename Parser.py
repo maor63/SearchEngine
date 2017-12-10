@@ -11,7 +11,7 @@ class Parser:
     def __init__(self, stop_word_path):
         self.contain_number = re.compile(".*\d.*")
         self.redundant_signs = ["|", "@", "^", "!", "?", "*", ";", "'", "\\", '"', '&', ':', '(', ')', '+', '=',
-                                ']', '[', '\n', '\t', '#', ' %']
+                                ']', '[', '\n', '\t', '#', ' %', '`']
         self.months = {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october",
                        "november", "december", "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "oct", "nov",
                        "dec"}
@@ -72,11 +72,11 @@ class Parser:
             self.add_to_dict(self._number_buffer[0])
             self._number_buffer[0] = ""
 
-    def _delete_empty_terms(self):
-        copy = self.terms.copy()
-        for term in copy:
-            if term == '' or term == ' ' or term == '  ':
-                del self.terms[term]
+    # def _delete_empty_terms(self):
+    #     copy = self.terms.copy()
+    #     for term in copy:
+    #         if term == '' or term == ' ' or term == '  ':
+    #             del self.terms[term]
 
     def _parse_token(self, raw_term):
         if raw_term == '' or raw_term == ' ' or raw_term == '  ':
@@ -137,6 +137,7 @@ class Parser:
                     self.add_to_dict((" ".join(self._upper_case_buffer) + " " + raw_term))
                     self._upper_case_buffer = []
                 else:
+                    # if len(raw_term) > 1:
                     self._upper_case_buffer.append(raw_term)
             else:
                 self._flush_upper_case_buffer()
@@ -228,4 +229,4 @@ class Parser:
         if term in self.stop_words:
             return
         # self.terms[term] += 1
-        self.terms.append(term.lstrip())
+        self.terms.append(term.strip().lower())

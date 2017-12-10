@@ -10,16 +10,17 @@ class Indexer:
     def __init__(self, path=""):
         self.docs_posting = []
         self.terms_posting = []
+        self.term = []
         self.term_to_doc_id = SortedDict()
         self.path = path
         self._index = 1
-        f_docs = open("{0}docs".format(self.path), 'w')
 
     def index(self, terms_dict, doc):
         if len(terms_dict) == 0:
             return
         most_frequent = str(max(terms_dict, key=terms_dict.get))
-        doc_row = "{0}#{1}#{2}\n".format(doc.id, most_frequent, str(len(doc.text)))
+        # num_most_frequent = max(terms_dict.keys())
+        doc_row = "{0}#{1}#{2}#{3}\n".format(doc.id, most_frequent, terms_dict[most_frequent], str(len(doc.text)))
         self.docs_posting.append(doc_row)
 
         for term in terms_dict:
@@ -36,6 +37,7 @@ class Indexer:
             self.terms_posting.append(term_row)
 
         f_terms = open("{0}{1}_terms".format(self.path, str(self._index)), 'w')
+
         f_terms.writelines(self.terms_posting)
         # f_terms.flush()
         f_terms.close()
@@ -66,6 +68,16 @@ class Indexer:
             file_terms.append("merged" + str(num) + "_terms")
             num += 1
         os.remove(self.path + 'merged')
+
+        # file_terms = list((filter(lambda f: "terms" in f, os.listdir(self.path))))
+        # dic = open("{0}dictionary".format(self.path), 'w')
+        # t = open(self.path+file_terms[0])
+        # x =t.readline()
+        # while (x != ''):
+        #     term, freq, doc_list = x.split('#')
+        #     dic.write(term+'\n')
+        #     x = t.readline()
+        # dic.close()
 
     def mergefiles(self, file1, file2, output, num):
         d = SortedDict()
@@ -115,7 +127,6 @@ class Indexer:
         for term in d:
             l.append(d[term])
 
-
         f_terms = open("{0}{1}{2}_terms".format(self.path, output, num), 'w')
         f_terms.writelines(l)
         # f_terms.flush()
@@ -123,3 +134,37 @@ class Indexer:
 
         self.docs_posting = []
         self.terms_posting = []
+
+    def cache(self):
+        f_cache = open("{0}cache".format(self.path), 'a')
+        line = 0
+        maxs = []
+        counter = 0
+        dicfreqlines = {}
+        file_terms = list((filter(lambda f: "terms" in f, os.listdir(self.path))))
+        file = open(self.path + file_terms[0])
+        file.seek(0)
+        x = file.readline()
+        while (x != ''):
+            term, freq, doc_list = x.split('#')
+            dicfreqlines[line] = int(freq)
+            line += 1
+            x = file.readline()
+
+        while (counter <= 100):
+            maxs.append(max(dicfreqlines, key=dicfreqlines.get))
+            dicfreqlines.pop(max(dicfreqlines, key=dicfreqlines.get), None)
+            counter += 1
+
+        f = open(self.path + file_terms[0], "r")
+        lines = f.readlines()
+        f.close()
+        f = open(self.path + file_terms[0], "w")
+        counter = 0
+        for l in lines:
+            if counter in maxs:
+                f_cache.write(l)
+            else:
+                f.write(l)
+            counter += 1
+        f.close()
