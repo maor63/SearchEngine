@@ -1,8 +1,5 @@
-import heapq
-import linecache
-from collections import defaultdict
-
 import os
+
 from sortedcollections import SortedDict
 
 
@@ -21,7 +18,6 @@ class Indexer:
         if len(terms_dict) == 0:
             return
         most_frequent = str(max(terms_dict, key=terms_dict.get))
-        # num_most_frequent = max(terms_dict.keys())
         doc_row = "{0}#{1}#{2}#{3}\n".format(doc.id, most_frequent, terms_dict[most_frequent], str(len(doc.text)))
         self.docs_posting.append(doc_row)
 

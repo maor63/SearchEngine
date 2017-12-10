@@ -17,8 +17,8 @@ class Master:
         self.indexer.clean_postings()
 
     def run_process(self):
-        to_stem = False
-        total_docs = self.file_reader.read_files("./LA/", 1000)
+        to_stem = True
+        total_docs = self.file_reader.read_files("./FB/", 5000)
         for next_docs in total_docs:
             batch_terms = []
 
