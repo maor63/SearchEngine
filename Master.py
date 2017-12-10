@@ -14,13 +14,11 @@ class Master:
         self.parser = Parser("stop_words.txt")
         self.stemmer = Stemmer()
         self.indexer = Indexer("./postings/")
+        self.indexer.clean_postings()
 
     def run_process(self):
         to_stem = False
-        executor = ThreadPoolExecutor(max_workers=7)
-        total_docs = self.file_reader.read_files("./corpus1/", 1000)
-        threads = []
-        stem = True
+        total_docs = self.file_reader.read_files("./LA/", 1000)
         for next_docs in total_docs:
             batch_terms = []
 

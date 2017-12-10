@@ -148,7 +148,7 @@ class ParserTest(unittest.TestCase):
     def test_parse_text_with_dollar_3(self):
         text = "Soviet Union (Kc19.8 billion, $660 million)"
         result = self.parser.parse(text)
-        expected = {'million', 'soviet', 'soviet union', 'union', 'Kc19.8', 'billion', '660 dollar'}
+        expected = {'million', 'soviet', 'soviet union', 'union', 'kc19.8', 'billion', '660 dollar'}
         self.assertSetEqual(set(result.keys()), expected)
 
     def test_parse_text_with_dash(self):
