@@ -11,7 +11,7 @@ class Parser:
     def __init__(self, stop_word_path):
         self.contain_number = re.compile(".*\d.*")
         self.redundant_signs = ["|", "@", "^", "!", "?", "*", ";", "'", "\\", '"', '&', ':', '(', ')', '+', '=',
-                                ']', '[', '\n', '\t', '#', ' %', '`']
+                                ']', '[', '\n', '\t', '#', ' %', '`', 'כ', 'ז', 'ף', 'ר', 'ד', 'כ', '}', 'ק', 'ם', '_']
         self.months = {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october",
                        "november", "december", "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "oct", "nov",
                        "dec"}
@@ -118,11 +118,17 @@ class Parser:
                 self.add_to_dict((self._parse_number(raw_term.replace('$', '')) + " dollar"))
         elif '%' in raw_term:
             self.add_to_dict((self._parse_precentage(raw_term, '%')))
-        else:
-            self.add_to_dict(raw_term)
+        # else:
+        #     self.add_to_dict(raw_term)
 
     def _token_without_number(self, raw_term):
         self._flush_date_buffer()
+        raw_term = raw_term.replace('.', '')
+        raw_term = raw_term.replace('%', '')
+
+        if len(raw_term) < 1:
+            return
+
         if raw_term == 'percent' or raw_term == 'percentage':
             self.add_to_dict((self._number_buffer[0] + " percent"))
             self._number_buffer[0] = ""

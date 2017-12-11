@@ -7,7 +7,7 @@ from Observable import Observable
 from Parser import Parser
 from ReadFile import ReadFile
 from Stemmer import Stemmer
-
+import time
 
 class Master(Observable):
     def __init__(self, docs_path, postings_path):
@@ -24,6 +24,7 @@ class Master(Observable):
         self.indexer.clean_postings()
 
     def run_process(self, stemming=True, treshhold=2):
+        start = time.time()
         corpus_path = "{0}/".format(self.docs_path)
         total_docs = self.file_reader.read_files(corpus_path, treshhold)
         docs_count = self.file_reader.count_docs(corpus_path)
@@ -47,6 +48,8 @@ class Master(Observable):
         if stemming:
             terms_postings = "stemed_" + terms_postings
             docs_postings = "stemed_" + docs_postings
+        end = time.time()
+        print("Read file time after parser: {0}".format(str((end - start)/60)+" min"))
         self.indexer.merge(terms_postings, docs_postings)
         # self.indexer.cache()
         self.TermDictionary = self.indexer.TermDictionary
