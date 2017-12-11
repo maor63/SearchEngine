@@ -14,7 +14,7 @@ class Controller(Observer, Observable):
         self.docs_dict = {}
 
     def start_indexing(self, doc_path, posting_path, stem):
-        executor = ThreadPoolExecutor(max_workers=2)
+        executor = ThreadPoolExecutor(max_workers=5)
         print("Stemming: {0}".format(stem))
         self.module = Master(doc_path, posting_path)
         self.module.set_observer(self)
