@@ -51,7 +51,13 @@ class Master(Observable):
         end = time.time()
         print("Read file time after parser: {0}".format(str((end - start)/60)+" min"))
         self.indexer.merge(terms_postings, docs_postings)
-        # self.indexer.cache()
+        end = time.time()
+        print("Read file time after merge: {0}".format(str((end - start) / 60) + " min"))
+        self.indexer.cache()
+        end1 = time.time()
+        print("Read file time after cache: {0}".format(str((end1 - start) / 60) + " min"))
+        total_time = end - start
+        self.indexer.print_messege(total_time)
         self.TermDictionary = self.indexer.TermDictionary
         self.DocsDictionary = self.indexer.DocsDictionary
         self.notify_observers(done=True)
