@@ -1,16 +1,25 @@
 from tkinter import filedialog
 from tkinter import *
+from tkinter.ttk import Treeview, Progressbar
+
+from Observer import Observer
 
 
-class View:
+class View(Observer):
     def __init__(self, controller):
         self.controller = controller
+        self.controller.set_observer(self)
         self.root = Tk()
         self.root.title("Search Engine")
         self.docs_entry = Entry(self.root)
         self.posting_entry = Entry(self.root)
         self.to_stem = False
         self.stem_checkbutton = None
+        self.progress_bar = Progressbar(self.root, orient=HORIZONTAL, length=200, mode='determinate')
+        self.status_bar = Label(self.root)
+        self.status_bar_text = StringVar()
+        self.status_bar['textvariable'] = self.status_bar_text
+        self.status_bar_text.set('Status:')
         self.create_view()
 
     def start(self):
@@ -35,10 +44,30 @@ class View:
         reset_btn.grid(row=6, column=0)
         cache_btn = Button(text="Show cache", fg="red")
         cache_btn.grid(row=6, column=1)
-        dictionary_btn = Button(text="Show dictionary", fg="red")
+        dictionary_btn = Button(text="Show dictionary", fg="red", command=self.display_dictionary)
         dictionary_btn.grid(row=6, column=2)
         self.stem_checkbutton = Checkbutton(self.root, text="stemming", command=self.change_stem_state)
         self.stem_checkbutton.grid(row=5, column=0)
+
+        self.status_bar.grid(row=7, column=0, columnspan=3, sticky=W)
+
+        self.progress_bar.grid(row=8, column=0, columnspan=3, sticky=(W, E))
+
+    def display_dictionary(self):
+        t = Toplevel(self.root)
+        tree = Treeview(t, columns=('term', 'row'))
+        s = Scrollbar(t, orient=VERTICAL, command=tree.yview)
+        tree['yscrollcommand'] = s.set
+        tree.heading('term', text='Term')
+        tree.heading('row', text='Row')
+        term_dict = self.controller.get_dictionary()
+        i = 1
+        for term in term_dict:
+            tree.insert('', 'end', text=str(i), values=(term, str(term_dict[term])))
+            i += 1
+
+        tree.grid(column=0, row=0, sticky=(N, W, E, S))
+        s.grid(column=1, row=0, sticky=(N, S))
 
     def docs_browse_location(self):
         dir_path = filedialog.askdirectory()
@@ -51,10 +80,12 @@ class View:
         self.posting_entry.insert(0, dir_path)
 
     def start_indexing(self):
+        self.progress_bar['value'] = 0
         self.controller.start_indexing(self.docs_entry.get(), self.posting_entry.get(), self.to_stem)
 
-    def update(self):
-        pass
+    def update(self, **kwargs):
+        self.status_bar_text.set(kwargs['status'])
+        self.progress_bar.step(kwargs['progress'])
 
     def change_stem_state(self):
         if self.to_stem is False:

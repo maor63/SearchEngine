@@ -1,15 +1,19 @@
-from concurrent.futures import ThreadPoolExecutor
+
 
 from collections import defaultdict
 
 from Indexer import Indexer
+from Observable import Observable
 from Parser import Parser
 from ReadFile import ReadFile
 from Stemmer import Stemmer
 
 
-class Master:
+class Master(Observable):
     def __init__(self, docs_path, postings_path):
+        super().__init__()
+        self.TermDictionary = {}
+        self.DocsDictionary = {}
         self.file_reader = ReadFile()
         self.docs_path = docs_path
         self.parser = Parser("{0}/stop_words.txt".format(docs_path))
@@ -19,8 +23,10 @@ class Master:
     def clean_indexing(self):
         self.indexer.clean_postings()
 
-    def run_process(self, stemming=True):
-        total_docs = self.file_reader.read_files("{0}/".format(self.docs_path), 500)
+    def run_process(self, stemming=True, treshhold=2):
+        corpus_path = "{0}/".format(self.docs_path)
+        total_docs = self.file_reader.read_files(corpus_path, treshhold)
+        docs_count = self.file_reader.count_docs(corpus_path)
 
         for next_docs in total_docs:
             batch_terms = []
@@ -32,6 +38,8 @@ class Master:
                 batch_terms.append(terms_dict)
                 self.indexer.index(terms_dict, doc)
             self.indexer.flush()
+            progress = treshhold / docs_count * 100
+            self.notify_observers(progress=progress, status='Indexing', done=False)
             print("batch ended")
         print("end")
         terms_postings = "merged_terms_postings.txt"
@@ -41,7 +49,9 @@ class Master:
             docs_postings = "stemed_" + docs_postings
         self.indexer.merge(terms_postings, docs_postings)
         # self.indexer.cache()
-        return self.indexer.TermDictionary, self.indexer.DocsDictionary
+        self.TermDictionary = self.indexer.TermDictionary
+        self.DocsDictionary = self.indexer.DocsDictionary
+        self.notify_observers(done=True)
 
     def combine_dicts(self, terms):
         new_term_dict = defaultdict(int)
@@ -52,4 +62,7 @@ class Master:
 
     def parse_text(self, text):
         return self.parser.parse(text)
+
+    def get_term_dictionary(self):
+        return self.TermDictionary
 

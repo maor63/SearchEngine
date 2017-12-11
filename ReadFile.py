@@ -10,7 +10,14 @@ class ReadFile:
         self.text_tags = re.compile("\[.*]|<.*>")
         self.parser = Parser("")
 
-    def read_files(self, path, threshold=1000):
+    def count_docs(self, path):
+        all_sub_folders = os.listdir(path)
+        i = 1
+        for curr_folder in all_sub_folders:
+            i += 1
+        return i
+
+    def read_files(self, path, threshold=5):
         all_sub_folders = os.listdir(path)
         docs = []
         i = 1
@@ -25,7 +32,7 @@ class ReadFile:
             else:
                 d = self.read_docs_from_FT_file(path + curr_folder + "/" + curr_folder)
             docs.extend(d)
-            if len(docs) >= threshold:
+            if i >= threshold:
                 yield docs
                 docs = []
 
