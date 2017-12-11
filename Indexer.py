@@ -1,5 +1,7 @@
 import os
+from tkinter import *
 
+from tkinter import messagebox
 from sortedcollections import SortedDict
 
 
@@ -13,6 +15,7 @@ class Indexer:
         self.term_to_doc_id = SortedDict()
         self.path = path
         self._index = 0
+        self.message = "\n"
 
     def index(self, terms_dict, doc):
         if len(terms_dict) == 0:
@@ -61,6 +64,9 @@ class Indexer:
         files_names = list(filter(lambda f: f.endswith("docs"), os.listdir(self.path)))
         files = list(map(lambda f: open(self.path + f), files_names))
         self.DocsDictionary = self.merge_files(docs_output_file, files, self.merdge_doc_line)
+        self.message = self.message + "The number of terms indexed: {0:,} terms\n\n" \
+                                      "The number of Docs that were indexed: {1:,} Docs\n\n".format\
+            (len(self.DocsDictionary), len(self.TermDictionary))
 
     def merge_files(self, output_file, input_files, merge_line_fn):
         dictionary = {}
@@ -109,12 +115,11 @@ class Indexer:
     def cache(self):
         f_cache = open("{0}cache".format(self.path), 'a')
         line = 0
-        maxs = []
-        counter = 0
+        maxfrequency = []
+        counter = 1
         dicfreqlines = {}
-        file_terms = list((filter(lambda f: "terms" in f, os.listdir(self.path))))
-        file = open(self.path + file_terms[0])
-        file.seek(0)
+        file = open("{0}merged_terms_postings.txt".format(self.path), 'r')
+        newfile = open(self.path + "new_merged_terms", 'a')
         x = file.readline()
         while (x != ''):
             term, freq, doc_list = x.split('#')
@@ -123,19 +128,37 @@ class Indexer:
             x = file.readline()
 
         while (counter <= 100):
-            maxs.append(max(dicfreqlines, key=dicfreqlines.get))
+            maxfrequency.append(max(dicfreqlines, key=dicfreqlines.get))
             dicfreqlines.pop(max(dicfreqlines, key=dicfreqlines.get), None)
             counter += 1
 
-        f = open(self.path + file_terms[0], "r")
-        lines = f.readlines()
-        f.close()
-        f = open(self.path + file_terms[0], "w")
         counter = 0
-        for l in lines:
-            if counter in maxs:
-                f_cache.write(l)
+        file.seek(0)
+        x = file.readline()
+        while (x != ''):
+            if counter in maxfrequency:
+                f_cache.write(x)
             else:
-                f.write(l)
+                newfile.write(x)
+            x = file.readline()
             counter += 1
-        f.close()
+
+        f_cache.close()
+        file.close()
+        newfile.close()
+
+    def print_messege(self, total_time):
+        self.message = self.message + "The size of the cache: {0:,} bytes\n\n" \
+                                      "The size of the index: {1:,} bytes\n\n" \
+                                      "The total time of the process: {2:,} seconds".format(
+            os.path.getsize("{0}cache".format(self.path)),
+            os.path.getsize(self.path + "new_merged_terms") + os.path.getsize(self.path + "merged_docs_postings.txt"),
+            round(total_time))
+
+        info = Tk()
+        info.title("Information")
+        info.geometry("300x300")
+        w = Label(info, text=self.message)
+        w.pack()
+
+        info.mainloop()

@@ -6,7 +6,7 @@ from Indexer import Indexer
 from Parser import Parser
 from ReadFile import ReadFile
 from Stemmer import Stemmer
-
+import time
 
 class Master:
     def __init__(self, docs_path, postings_path):
@@ -20,7 +20,8 @@ class Master:
         self.indexer.clean_postings()
 
     def run_process(self, stemming=True):
-        total_docs = self.file_reader.read_files("{0}/".format(self.docs_path), 500)
+        start = time.time()
+        total_docs = self.file_reader.read_files("{0}/".format(self.docs_path), 5000)
 
         for next_docs in total_docs:
             batch_terms = []
@@ -39,8 +40,16 @@ class Master:
         if stemming:
             terms_postings = "stemed_" + terms_postings
             docs_postings = "stemed_" + docs_postings
+        end = time.time()
+        print("Read file time after parser: {0}".format(str((end - start)/60)+" min"))
         self.indexer.merge(terms_postings, docs_postings)
-        # self.indexer.cache()
+        end = time.time()
+        print("Read file time after merge: {0}".format(str((end - start)/60)+" min"))
+        self.indexer.cache()
+        end1 = time.time()
+        print("Read file time after cache: {0}".format(str((end1 - start)/60)+" min"))
+        total_time = end - start
+        self.indexer.print_messege(total_time)
         return self.indexer.TermDictionary, self.indexer.DocsDictionary
 
     def combine_dicts(self, terms):
