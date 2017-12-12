@@ -16,8 +16,12 @@ class View(Observer):
         self.docs_entry = Entry(self.root)
         self.posting_entry = Entry(self.root)
         self.to_stem = False
-        self.stem_checkbutton = None
+        self.stem_checkbutton = Checkbutton(self.root, text="stemming", command=self.change_stem_state)
         self.progress_bar = Progressbar(self.root, orient=HORIZONTAL, length=200, mode='determinate')
+        self.start_btn = Button(text="Start", fg="blue", command=self.start_indexing)
+        self.reset_btn = Button(text="Reset process", fg="red", command=self.reset_data)
+        self.dictionary_btn = Button(text="Show dictionary", fg="red", command=self.display_dictionary)
+        self.cache_btn = Button(text="Show cache", fg="red", command=self.display_cache)
         self.status_bar = Label(self.root)
         self.status_bar_text = StringVar()
         self.status_bar['textvariable'] = self.status_bar_text
@@ -40,40 +44,34 @@ class View(Observer):
         self.posting_entry.grid(row=2, column=1)
         docs_btn.grid(row=1, column=2)
         posting_btn.grid(row=2, column=2)
-        start_btn = Button(text="Start", fg="blue", command=self.start_indexing)
-        start_btn.grid(row=5, column=1)
-        reset_btn = Button(text="Reset process", fg="red", command=self.reset_data)
-        reset_btn.grid(row=6, column=0)
-        cache_btn = Button(text="Show cache", fg="red", command=self.display_cache)
-        cache_btn.grid(row=6, column=1)
-        dictionary_btn = Button(text="Show dictionary", fg="red", command=self.display_dictionary)
-        dictionary_btn.grid(row=6, column=2)
+        self.start_btn.grid(row=5, column=1)
+        self.reset_btn.grid(row=6, column=0)
+        self.reset_btn['state'] = 'disabled'
+        self.cache_btn.grid(row=6, column=1)
+        self.dictionary_btn.grid(row=6, column=2)
         reset_btn = Button(text="Save dictionary and cache")
         reset_btn.grid(row=7, column=1)
         cache_btn = Button(text="Upload dictionary and cache")
         cache_btn.grid(row=7, column=2)
-        self.stem_checkbutton = Checkbutton(self.root, text="stemming", command=self.change_stem_state)
         self.stem_checkbutton.grid(row=5, column=0)
-
-        self.status_bar.grid(row=7, column=0, columnspan=3, sticky=W)
-
-        self.progress_bar.grid(row=8, column=0, columnspan=3, sticky=(W, E))
+        self.status_bar.grid(row=8, column=0, columnspan=3, sticky=W)
+        self.progress_bar.grid(row=9, column=0, columnspan=3, sticky=(W, E))
 
     def display_dictionary(self):
-        t = Toplevel(self.root)
-        tree = Treeview(t, columns=('term', 'row'))
-        s = Scrollbar(t, orient=VERTICAL, command=tree.yview)
-        tree['yscrollcommand'] = s.set
-        tree.heading('term', text='Term')
-        tree.heading('row', text='Row')
+        dictionary_display_window = Toplevel(self.root)
+        term_table = Treeview(dictionary_display_window, columns=('term', 'row'))
+        scroll_bar = Scrollbar(dictionary_display_window, orient=VERTICAL, command=term_table.yview)
+        term_table['yscrollcommand'] = scroll_bar.set
+        term_table.heading('term', text='Term')
+        term_table.heading('row', text='Row')
         term_dict = self.controller.get_dictionary()
         i = 1
         for term in term_dict:
-            tree.insert('', 'end', text=str(i), values=(term, str(term_dict[term])))
+            term_table.insert('', 'end', text=str(i), values=(term, str(term_dict[term])))
             i += 1
 
-        tree.grid(column=0, row=0, sticky=(N, W, E, S))
-        s.grid(column=1, row=0, sticky=(N, S))
+        term_table.grid(column=0, row=0, sticky=(N, W, E, S))
+        scroll_bar.grid(column=1, row=0, sticky=(N, S))
 
     def docs_browse_location(self):
         dir_path = filedialog.askdirectory()
@@ -86,12 +84,21 @@ class View(Observer):
         self.posting_entry.insert(0, dir_path)
 
     def start_indexing(self):
+        self.start_btn['state'] = 'disabled'
+        self.dictionary_btn['state'] = 'disabled'
+        self.cache_btn['state'] = 'disabled'
         self.progress_bar['value'] = 0
         self.controller.start_indexing(self.docs_entry.get(), self.posting_entry.get(), self.to_stem)
 
     def update(self, **kwargs):
-        self.status_bar_text.set(kwargs['status'])
+        self.status_bar_text.set("Status: " + kwargs['status'])
         self.progress_bar.step(kwargs['progress'])
+        if kwargs['done']:
+            self.progress_bar['value'] = 100
+            self.start_btn['state'] = 'normal'
+            self.reset_btn['state'] = 'normal'
+            self.dictionary_btn['state'] = 'normal'
+            self.cache_btn['state'] = 'normal'
 
     def change_stem_state(self):
         if self.to_stem is False:

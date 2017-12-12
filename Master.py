@@ -39,7 +39,7 @@ class Master(Observable):
                 batch_terms.append(terms_dict)
                 self.indexer.index(terms_dict, doc)
             self.indexer.flush()
-            progress = treshhold / docs_count * 100
+            progress = treshhold / docs_count * 80
             self.notify_observers(progress=progress, status='Indexing', done=False)
             print("batch ended")
         print("end")
@@ -50,9 +50,11 @@ class Master(Observable):
             docs_postings = "stemed_" + docs_postings
         end = time.time()
         print("Read file time after parser: {0}".format(str((end - start)/60)+" min"))
+        self.notify_observers(progress=10, status='Merging posting files', done=False)
         self.indexer.merge(terms_postings, docs_postings)
         end = time.time()
         print("Read file time after merge: {0}".format(str((end - start) / 60) + " min"))
+        self.notify_observers(progress=10, status='Creating Cache', done=False)
         self.indexer.cache()
         end1 = time.time()
         print("Read file time after cache: {0}".format(str((end1 - start) / 60) + " min"))
