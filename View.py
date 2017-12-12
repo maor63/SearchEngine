@@ -2,6 +2,8 @@ from tkinter import filedialog
 from tkinter import *
 from tkinter.ttk import Treeview, Progressbar
 
+import os
+
 from Observer import Observer
 
 
@@ -42,10 +44,14 @@ class View(Observer):
         start_btn.grid(row=5, column=1)
         reset_btn = Button(text="Reset process", fg="red", command=self.reset_data)
         reset_btn.grid(row=6, column=0)
-        cache_btn = Button(text="Show cache", fg="red")
+        cache_btn = Button(text="Show cache", fg="red", command=self.display_cache)
         cache_btn.grid(row=6, column=1)
         dictionary_btn = Button(text="Show dictionary", fg="red", command=self.display_dictionary)
         dictionary_btn.grid(row=6, column=2)
+        reset_btn = Button(text="Save dictionary and cache")
+        reset_btn.grid(row=7, column=1)
+        cache_btn = Button(text="Upload dictionary and cache")
+        cache_btn.grid(row=7, column=2)
         self.stem_checkbutton = Checkbutton(self.root, text="stemming", command=self.change_stem_state)
         self.stem_checkbutton.grid(row=5, column=0)
 
@@ -95,3 +101,6 @@ class View(Observer):
 
     def reset_data(self):
         self.controller.clean_postings()
+
+    def display_cache(self):
+        pass

@@ -66,7 +66,7 @@ class Indexer:
         self.DocsDictionary = self.merge_files(docs_output_file, files, self.merdge_doc_line)
         self.message = self.message + "The number of terms indexed: {0:,} terms\n\n" \
                                       "The number of Docs that were indexed: {1:,} Docs\n\n".format\
-            (len(self.DocsDictionary), len(self.TermDictionary))
+            (len(self.TermDictionary), len(self.DocsDictionary))
 
     def merge_files(self, output_file, input_files, merge_line_fn):
         dictionary = {}
