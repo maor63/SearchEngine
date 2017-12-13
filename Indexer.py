@@ -2,7 +2,7 @@ import linecache
 import os
 from collections import Counter
 from tkinter import *
-
+import codecs
 from tkinter import messagebox
 from sortedcollections import SortedDict
 
@@ -47,12 +47,12 @@ class Indexer:
             self.terms_posting.append(term_row)
 
         if len(self.terms_posting) > 0:
-            f_terms = open("{0}{1}_terms".format(self.path, str(self._index)), 'w')
+            f_terms = codecs.open("{0}{1}_terms".format(self.path, str(self._index)), 'w', 'utf-8')
             f_terms.writelines(self.terms_posting)
             f_terms.close()
 
         if len(self.docs_posting) > 0:
-            f_docs = open("{0}{1}_docs".format(self.path, str(self._index)), 'w')
+            f_docs = codecs.open("{0}{1}_docs".format(self.path, str(self._index)), 'w', 'utf-8')
             f_docs.writelines(self.docs_posting)
             f_docs.close()
 

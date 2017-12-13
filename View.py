@@ -105,6 +105,8 @@ class View(Observer):
         self.start_btn['state'] = 'disabled'
         self.dictionary_btn['state'] = 'disabled'
         self.cache_btn['state'] = 'disabled'
+        self.reset_btn['state'] = 'disabled'
+        self.stem_checkbutton['state'] = 'disabled'
         self.progress_bar['value'] = 0
         self.controller.start_indexing(self.docs_entry.get(), self.posting_entry.get(), self.to_stem)
 
@@ -117,6 +119,7 @@ class View(Observer):
             self.reset_btn['state'] = 'normal'
             self.dictionary_btn['state'] = 'normal'
             self.cache_btn['state'] = 'normal'
+            self.stem_checkbutton['state'] = 'normal'
             self.display_summary(kwargs['summary'])
 
     def change_stem_state(self):
