@@ -34,6 +34,12 @@ class Controller(Observer, Observable):
     def get_cache(self):
         return self.cache
 
+    def set_cache(self, cache):
+        self.cache = cache
+
+    def set_dictionary(self, dictionary):
+        self.term_dict = dictionary
+
     def update(self, **kwargs):
         if kwargs['done']:
             self.term_dict = self.module.get_term_dictionary()

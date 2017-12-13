@@ -35,7 +35,8 @@ class Indexer:
             self.term_to_doc_id[term][doc.id] = terms_dict[term]
 
     def clean_postings(self):
-        for f in os.listdir(self.path):
+        postings_files = list(filter(lambda x: x.endswith('.p'), os.listdir(self.path)))
+        for f in postings_files:
             os.remove(self.path + f)
 
     def flush(self):

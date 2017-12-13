@@ -44,8 +44,8 @@ class Master(Observable):
             self.notify_observers(progress=progress, status='Indexing', done=False)
             print("batch ended")
         print("end")
-        terms_postings = "merged_terms_postings.txt"
-        docs_postings = 'merged_docs_postings.txt'
+        terms_postings = "merged_terms_postings.p"
+        docs_postings = 'merged_docs_postings.p'
         if stemming:
             terms_postings = "stemed_" + terms_postings
             docs_postings = "stemed_" + docs_postings

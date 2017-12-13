@@ -1,5 +1,7 @@
+import pickle
 from tkinter import filedialog
 from tkinter import *
+from tkinter.filedialog import asksaveasfile, askopenfilename
 from tkinter.ttk import Treeview, Progressbar
 
 import os
@@ -51,10 +53,10 @@ class View(Observer):
         self.reset_btn['state'] = 'disabled'
         self.cache_btn.grid(row=6, column=1)
         self.dictionary_btn.grid(row=6, column=2)
-        reset_btn = Button(text="Save dictionary and cache")
-        reset_btn.grid(row=7, column=1)
-        cache_btn = Button(text="Upload dictionary and cache")
-        cache_btn.grid(row=7, column=2)
+        save_btn = Button(text="Save dictionary and cache", command=self.save_dictionary_cache)
+        save_btn.grid(row=7, column=1)
+        upload_btn = Button(text="Upload dictionary and cache", command=self.upload_dictionary_cache)
+        upload_btn.grid(row=7, column=2)
         self.stem_checkbutton.grid(row=5, column=0)
         self.status_bar.grid(row=8, column=0, columnspan=3, sticky=W)
         self.progress_bar.grid(row=9, column=0, columnspan=3, sticky=(W, E))
@@ -145,3 +147,32 @@ class View(Observer):
         display_window.geometry("300x300")
         w = Label(display_window, text=message)
         w.pack()
+
+    def save_dictionary_cache(self):
+        file_dictionary = asksaveasfile(mode='bw', defaultextension=".dic", title='Save Dictionary')
+        if file_dictionary is None:
+            return
+        pickle.dump(self.controller.get_dictionary(), file_dictionary)
+        file_dictionary.close()
+
+        file_cache = asksaveasfile(mode='bw', defaultextension=".cch", title='Save Cache')
+        if file_cache is None:
+            return
+        pickle.dump(self.controller.get_cache(), file_cache)
+        file_cache.close()
+
+    def upload_dictionary_cache(self):
+        file_dictionary = askopenfilename(filetypes=(("dictionary files", "*.dic"), ("dic", "*.*")),
+                                          title='Upload Dictionary')
+        if file_dictionary is '':
+            return
+        f = open(file_dictionary, "br")
+        self.controller.set_dictionary(pickle.load(f))
+        f.close()
+
+        file_cache = askopenfilename(filetypes=(("dictionary files", "*.cch"), ("cch", "*.*")), title='Upload Cache')
+        if file_cache is '':
+            return
+        f = open(file_cache, "br")
+        self.controller.set_cache(pickle.load(f))
+        f.close()
