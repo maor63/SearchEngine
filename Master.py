@@ -23,20 +23,17 @@ class Master(Observable):
     def clean_indexing(self):
         self.indexer.clean_postings()
 
-    def run_process(self, stemming=True, treshhold=2):
+    def run_process(self, stemming=True, treshhold=5):
         start = time.time()
         corpus_path = "{0}/".format(self.docs_path)
         total_docs = self.file_reader.read_files(corpus_path, treshhold)
         docs_count = self.file_reader.count_docs(corpus_path)
 
         for next_docs in total_docs:
-            batch_terms = []
-
             for doc in next_docs:
                 terms_dict = self.parse_text(doc.text)
                 if stemming:
                     terms_dict = self.stemmer.stem(terms_dict)
-                batch_terms.append(terms_dict)
                 self.indexer.index(terms_dict, doc)
             self.indexer.flush()
             progress = treshhold / docs_count * 80
@@ -55,11 +52,11 @@ class Master(Observable):
         end = time.time()
         print("Read file time after merge: {0}".format(str((end - start) / 60) + " min"))
         self.notify_observers(progress=10, status='Creating Cache', done=False)
-        self.indexer.cache()
+        # self.indexer.cache()
         end1 = time.time()
         print("Read file time after cache: {0}".format(str((end1 - start) / 60) + " min"))
         total_time = end - start
-        self.indexer.print_messege(total_time)
+        # self.indexer.print_messege(total_time)
         self.TermDictionary = self.indexer.TermDictionary
         self.DocsDictionary = self.indexer.DocsDictionary
         self.notify_observers(done=True)

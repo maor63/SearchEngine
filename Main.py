@@ -8,9 +8,13 @@ from Parser import Parser
 
 
 def Main():
-    c = Controller()
-    v = View(c)
-    v.start()
+    # c = Controller()
+    # v = View(c)
+    # v.start()
+
+    module = Master("./FB", "./postings")
+    # t = Thread(target=)
+    module.run_process(True, 20)
 
     # start = time.time()
     # m = Master()
@@ -18,6 +22,7 @@ def Main():
     # #
     # end = time.time()
     # print("Read file time: {0}".format(str(end - start)))
+
 
 if __name__ == '__main__':
     Main()

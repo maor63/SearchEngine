@@ -92,6 +92,8 @@ class Indexer:
                 [os.remove(file) for file in files_to_delete]
             for term in sorted_lines:
                 output_file.write(sorted_lines[term])
+
+                sum_tf = sum(map(lambda x: int(x.split(':')[1]), sorted_lines[term].split('#')[2].split('*')[:-1]))
                 dictionary[term] = file_row
                 file_row += 1
             output_file.flush()

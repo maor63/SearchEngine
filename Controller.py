@@ -19,7 +19,7 @@ class Controller(Observer, Observable):
         self.module = Master(doc_path, posting_path)
         self.module.set_observer(self)
         # t = Thread(target=)
-
+        # self.module.run_process(stem)
         executor.submit(self.module.run_process, stem)
         # self.term_dict = future_term_dict.result()
         # self.docs_dict = future_docs_dict.result()

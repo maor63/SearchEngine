@@ -12,9 +12,11 @@ class View(Observer):
         self.controller = controller
         self.controller.set_observer(self)
         self.root = Tk()
-        self.root.title("Search Engine")
+        self.root.title("Search Engine By: Alon and Maor")
         self.docs_entry = Entry(self.root)
+        self.docs_entry['width'] = 50
         self.posting_entry = Entry(self.root)
+        self.posting_entry['width'] = 50
         self.to_stem = False
         self.stem_checkbutton = Checkbutton(self.root, text="stemming", command=self.change_stem_state)
         self.progress_bar = Progressbar(self.root, orient=HORIZONTAL, length=200, mode='determinate')

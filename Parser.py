@@ -10,21 +10,13 @@ from nltk.stem.snowball import EnglishStemmer
 class Parser:
     def __init__(self, stop_word_path):
         self.contain_number = re.compile(".*\d.*")
-        self.redundant_signs = ["|", "@", "^", "!", "?", "*", ";", "'", "\\", '"', '&', ':', '(', ')', '+', '=',
+        self.redundant_signs = ["|", "@", "^", "!", "?", "*", ";", "'", "\\", '"', '&', ':', '(', ')', '+', '=', '÷',
                                 ']', '[', '\n', '\t', '#', ' %', '`', 'כ', 'ז', 'ף', 'ר', 'ד', 'כ', '}', 'ק', 'ם', '_']
         self.months = {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october",
                        "november", "december", "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "oct", "nov",
                        "dec"}
         self.normal_date = re.compile("\d+/\d+|\d+/\d+/\d+")
-
-        self.init_data_structures()
         self.stop_words = self._set_of_stopwords(stop_word_path)
-
-    def init_data_structures(self):
-        self.terms = deque()
-        self._date_buffer = ""
-        self._number_buffer = [""]
-        self._upper_case_buffer = []
 
     def _set_of_stopwords(self, path):
         if not os.path.exists(path):
@@ -38,121 +30,94 @@ class Parser:
         text = text.replace(",", '')
         text = text.replace(' .', ' ').replace('. ', ' ')
         raw_terms = text.split(' ')
+        not_parsed_terms = self._parse_terms(raw_terms)
+        self._parse_terms(not_parsed_terms)
+        raw_terms.extend(not_parsed_terms)
+        raw_terms = map(lambda x: x.strip(), raw_terms)
+        raw_terms = deque(
+            filter(lambda x: len(x) > 0 and x not in self.stop_words and x[0] not in {'.', '$', '/'}, raw_terms))
+        return Counter(raw_terms)
 
-        self.init_data_structures()
-        terms = self._parse_raw_terms(raw_terms)
+    def _parse_terms(self, raw_terms):
+        added_terms = deque()
+        self._parse_numbers(raw_terms, added_terms)
+        self._parse_dates(raw_terms)
+        self._parse_upper_case(raw_terms, added_terms)
+        self._parse_dash(raw_terms, added_terms)
+        return added_terms
+
+    def _parse_dash(self, raw_terms, terms):
+        for i, term in enumerate(raw_terms):
+            if '-' in term:
+                splited_terms = term.split('-')
+                raw_terms[i] = splited_terms[0]
+                if not self.contain_number.match(splited_terms[0]) and not self.contain_number.match(splited_terms[1]):
+                    terms.append((splited_terms[0] + ' ' + splited_terms[1]).lower())
+                [terms.append(t.lower()) for t in splited_terms[1:]]
+
+    def _parse_upper_case(self, raw_terms, terms):
+        for i, term in enumerate(raw_terms):
+            if len(term) > 0 and term[0].isupper():
+                if i + 1 < len(raw_terms) and len(raw_terms[i + 1]) > 0 and raw_terms[i + 1][0].isupper():
+                    terms.append((term + ' ' + raw_terms[i + 1]).lower())
+                    raw_terms[i + 1] = raw_terms[i + 1].lower()
+                raw_terms[i] = term.lower()
+
+    def _parse_dates(self, raw_terms):
+        for i, term in enumerate(raw_terms):
+            if term.lower() in self.months:
+                date = []
+                if i - 1 >= 0 and raw_terms[i - 1].replace('th', '').isdigit():
+                    date.append(raw_terms[i - 1].replace('th', ''))
+                    raw_terms[i - 1] = ''
+                date.append(term)
+                if i + 1 < len(raw_terms) and raw_terms[i + 1].replace('th', '').isdigit():
+                    date.append(raw_terms[i + 1].replace('th', ''))
+                    raw_terms[i + 1] = ''
+                if len(date) < 3 and i + 2 < len(raw_terms) and raw_terms[i + 2].isdigit():
+                    date.append(raw_terms[i + 2])
+                    raw_terms[i + 2] = ''
+                raw_terms[i] = self._parse_date(' '.join(date))
+
+    def _parse_numbers(self, raw_terms, terms):
+        for i, term in enumerate(raw_terms):
+            if self.contain_number.match(term) and not term.isdigit():
+                try:
+                    if term.isdigit():
+                        continue
+                    elif '/' in term:
+                        if self.normal_date.match(term):
+                            raw_terms[i] = term
+                        else:
+                            [terms.append(term) for term in term.split('/')]
+                            raw_terms[i] = ''
+                    elif '$' in term:
+                        if re.match("\$\d+b.*|\$\d+\.\d+b.*", term):
+                            raw_terms[i] = (term[term.find("$") + 1:term.find("b")] + " dollar")
+                            terms.append("billion")
+                        elif re.match("\$\d+m.*|\$\d+\.\d+m.*", term):
+                            raw_terms[i] = (term[term.find("$") + 1:term.find("m")] + " dollar")
+                            terms.append("million")
+                        else:
+                            term = term[term.find("$") + 1:]
+                            term = term.replace('$', '')
+                            if '-' in term:
+                                res = term.split('-')
+                                raw_terms[i] = self._parse_number(res[0]) + " dollar"
+                                terms.append(res[1])
+                            else:
+                                raw_terms[i] = self._parse_number(term) + " dollar"
+                    elif '%' in term:
+                        raw_terms[i] = (self._parse_precentage(term, '%'))
+                    else:
+                        raw_terms[i] = self._parse_number(raw_terms[i])
+                except ValueError:
+                    pass
+            elif term.startswith('percent'):
+                if i - 1 >= 0 and self._is_number(raw_terms[i - 1]):
+                    raw_terms[i] = raw_terms[i - 1] + ' percent'
+                    raw_terms[i - 1] = ''
         return terms
-
-    def _parse_raw_terms(self, raw_terms):
-        for raw_term in raw_terms:
-            try:
-                self._parse_token(raw_term)
-            except ValueError as e:
-                # print(e)
-                pass
-        self._flush_date_buffer()
-
-        self._flush_number_buffer()
-
-        self._flush_upper_case_buffer()
-        # self._delete_empty_terms()
-        self.terms = filter(lambda x: not x.startswith('.'), self.terms)
-        self.terms = filter(lambda x: not x.startswith('$'), self.terms)
-        self.terms = filter(lambda x: not x.startswith('/'), self.terms)
-        self.terms = filter(lambda x: x != '', self.terms)
-        return dict(Counter(self.terms))
-
-    def _flush_upper_case_buffer(self):
-        if self._upper_case_buffer != []:
-            self.add_to_dict(" ".join(self._upper_case_buffer))
-            self._upper_case_buffer = []
-
-    def _flush_number_buffer(self):
-        if self._number_buffer[0] != "":
-            self.add_to_dict(self._number_buffer[0])
-            self._number_buffer[0] = ""
-
-    # def _delete_empty_terms(self):
-    #     copy = self.terms.copy()
-    #     for term in copy:
-    #         if term == '' or term == ' ' or term == '  ':
-    #             del self.terms[term]
-
-    def _parse_token(self, raw_term):
-        if raw_term == '' or raw_term == ' ' or raw_term == '  ':
-            return
-        elif '-' in raw_term:
-            term = raw_term.lower().replace('-', ' ').strip()
-            if not self.contain_number.match(term):
-                self.add_to_dict(term)
-            [self._parse_token(term) for term in raw_term.lower().split('-')]
-        elif self.contain_number.match(raw_term):
-            self._token_with_number(raw_term)
-        else:
-            self._token_without_number(raw_term)
-
-    def _token_with_number(self, raw_term):
-        raw_term = raw_term.replace('th', '')
-        if self._is_number(raw_term):
-            if self._date_buffer != "" and len(self._date_buffer.split(' ')) < 3:
-                self._date_buffer += " " + raw_term
-            else:
-                self._flush_number_buffer()
-                self._number_buffer[0] = self._parse_number(raw_term)
-
-        elif '/' in raw_term:
-            if self.normal_date.match(raw_term):
-                self.add_to_dict(raw_term)
-            else:
-                [self._token_with_number(term) for term in
-                 raw_term.split('/')]
-        elif '$' in raw_term:
-            if re.match("\$\d+b.*|\$\d+\.\d+b.*", raw_term):
-                self.add_to_dict((raw_term[raw_term.find("$") + 1:raw_term.find("b")] + " dollar"))
-                self.add_to_dict("billion")
-            elif re.match("\$\d+m.*|\$\d+\.\d+m.*", raw_term):
-                self.add_to_dict((raw_term[raw_term.find("$") + 1:raw_term.find("m")] + " dollar"))
-                self.add_to_dict("million")
-            else:
-                raw_term = raw_term[raw_term.find("$") + 1:]
-                self.add_to_dict((self._parse_number(raw_term.replace('$', '')) + " dollar"))
-        elif '%' in raw_term:
-            self.add_to_dict((self._parse_precentage(raw_term, '%')))
-        # else:
-        #     self.add_to_dict(raw_term)
-
-    def _token_without_number(self, raw_term):
-        self._flush_date_buffer()
-        raw_term = raw_term.replace('.', '')
-        raw_term = raw_term.replace('%', '')
-
-        if len(raw_term) < 1:
-            return
-
-        if raw_term == 'percent' or raw_term == 'percentage':
-            self.add_to_dict((self._number_buffer[0] + " percent"))
-            self._number_buffer[0] = ""
-        elif self._is_month(raw_term):
-            self._date_buffer = (self._number_buffer[0] + " " + raw_term).strip()
-            self._number_buffer[0] = ""
-        else:
-            self._flush_number_buffer()
-            if not raw_term[0].islower():
-                raw_term = raw_term.lower()
-                if self._upper_case_buffer != []:
-                    self.add_to_dict((" ".join(self._upper_case_buffer) + " " + raw_term))
-                    self._upper_case_buffer = []
-                else:
-                    # if len(raw_term) > 1:
-                    self._upper_case_buffer.append(raw_term)
-            else:
-                self._flush_upper_case_buffer()
-            self.add_to_dict(raw_term.lower())
-
-    def _flush_date_buffer(self):
-        if self._date_buffer != "":
-            self.add_to_dict((self._parse_date(self._date_buffer)))
-            self._date_buffer = ""
 
     def _parse_precentage(self, token, type):
         return self._parse_number(token.replace(type, '')) + ' percent'
@@ -230,9 +195,3 @@ class Parser:
         if raw_term.replace('.', '').isdigit():
             return True
         return False
-
-    def add_to_dict(self, term):
-        if term in self.stop_words:
-            return
-        # self.terms[term] += 1
-        self.terms.append(term.strip().lower())

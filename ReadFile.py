@@ -32,7 +32,7 @@ class ReadFile:
             else:
                 d = self.read_docs_from_FT_file(path + curr_folder + "/" + curr_folder)
             docs.extend(d)
-            if i >= threshold:
+            if i % threshold == 0:
                 yield docs
                 docs = []
 
