@@ -15,16 +15,11 @@ class Controller(Observer, Observable):
         self.cache = {}
 
     def start_indexing(self, doc_path, posting_path, stem):
-        executor = ThreadPoolExecutor(max_workers=5)
         print("Stemming: {0}".format(stem))
         self.module = Master(doc_path, posting_path)
         self.module.set_observer(self)
         t = Thread(target=self.module.run_process, args=(stem, 5))
         t.start()
-        # self.module.run_process(stem)lt()
-        # self.docs_dict = future_docs_dict.result()
-        # executor.submit(self.module.run_process, stem)
-        # self.term_dict = future_term_dict.resu
 
     def clean_postings(self):
         self.term_dict = {}
@@ -43,6 +38,6 @@ class Controller(Observer, Observable):
         if kwargs['done']:
             self.term_dict = self.module.get_term_dictionary()
             self.cache = self.module.get_cache()
-            self.notify_observers(status="Done!!!", done=True, progress=0)
+            self.notify_observers(status="Done!!!", done=True, progress=0, summary=kwargs['summary'])
         else:
             self.notify_observers(**kwargs)

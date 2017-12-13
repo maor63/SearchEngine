@@ -1,6 +1,7 @@
-
-
+import os
 from collections import defaultdict
+
+import sys
 
 from Indexer import Indexer
 from Observable import Observable
@@ -8,6 +9,7 @@ from Parser import Parser
 from ReadFile import ReadFile
 from Stemmer import Stemmer
 import time
+
 
 class Master(Observable):
     def __init__(self, docs_path, postings_path):
@@ -19,7 +21,8 @@ class Master(Observable):
         self.docs_path = docs_path
         self.parser = Parser("{0}/stop_words.txt".format(docs_path))
         self.stemmer = Stemmer()
-        self.indexer = Indexer("{0}/".format(postings_path))
+        self.posting_path = "{0}/".format(postings_path)
+        self.indexer = Indexer(self.posting_path)
 
     def clean_indexing(self):
         self.indexer.clean_postings()
@@ -47,20 +50,25 @@ class Master(Observable):
             terms_postings = "stemed_" + terms_postings
             docs_postings = "stemed_" + docs_postings
         end = time.time()
-        print("Read file time after parser: {0}".format(str((end - start)/60)+" min"))
+        print("Read file time after parser: {0}".format(str((end - start) / 60) + " min"))
         self.notify_observers(progress=10, status='Merging posting files', done=False)
+
         self.indexer.merge(terms_postings, docs_postings)
         end = time.time()
         print("Read file time after merge: {0}".format(str((end - start) / 60) + " min"))
+
         self.notify_observers(progress=10, status='Creating Cache', done=False)
         self.Cache = self.indexer.cache(10000)
         end1 = time.time()
         print("Read file time after cache: {0}".format(str((end1 - start) / 60) + " min"))
         total_time = end - start
-        # self.indexer.print_messege(total_time)
         self.TermDictionary = self.indexer.TermDictionary
         self.DocsDictionary = self.indexer.DocsDictionary
-        self.notify_observers(done=True)
+        summary = {'term_indexed': len(self.TermDictionary), 'doc_indexed': len(self.DocsDictionary),
+                   'total_time': round(total_time), 'cache_size': sys.getsizeof(self.Cache),
+                   'terms_size': os.path.getsize(self.posting_path + terms_postings),
+                   'docs_size': os.path.getsize(self.posting_path + docs_postings)}
+        self.notify_observers(done=True, summary=summary)
 
     def combine_dicts(self, terms):
         new_term_dict = defaultdict(int)
@@ -77,4 +85,3 @@ class Master(Observable):
 
     def get_cache(self):
         return self.Cache
-

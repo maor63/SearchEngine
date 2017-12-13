@@ -117,6 +117,7 @@ class View(Observer):
             self.reset_btn['state'] = 'normal'
             self.dictionary_btn['state'] = 'normal'
             self.cache_btn['state'] = 'normal'
+            self.display_summary(kwargs['summary'])
 
     def change_stem_state(self):
         if self.to_stem is False:
@@ -126,3 +127,18 @@ class View(Observer):
 
     def reset_data(self):
         self.controller.clean_postings()
+
+    def display_summary(self, summary):
+        display_window = Toplevel(self.root)
+        message = "The number of terms indexed: {0:,} terms\n\n" \
+                  "The number of Docs that were indexed: {1:,} Docs\n\n" \
+                  "The size of the cache: {2:,} bytes\n\n" \
+                  "The size of the terms postings: {3:,} bytes\n\n" \
+                  "The size of the docs postings: {4:,} bytes\n\n" \
+                  "The total time of the process: {5:,} seconds" \
+                  "".format(summary['term_indexed'], summary['doc_indexed'], summary['cache_size'],
+                            summary['terms_size'], summary['docs_size'], summary['total_time'])
+        display_window.title("Information")
+        display_window.geometry("300x300")
+        w = Label(display_window, text=message)
+        w.pack()
