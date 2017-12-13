@@ -73,9 +73,6 @@ class Indexer:
         files = list(map(lambda f: open(self.path + f), files_names))
         self.DocsDictionary = self.merge_files(docs_output_file, files, self.merdge_doc_line,
                                                self.get_doc_data_for_dictionary)
-        # self.message = self.message + "The number of terms indexed: {0:,} terms\n\n" \
-        #                               "The number of Docs that were indexed: {1:,} Docs\n\n".format \
-        #     (len(self.TermDictionary), len(self.DocsDictionary))
 
     def merge_files(self, output_file, input_files, merge_line_fn, get_data_for_dict_fn):
         dictionary = {}
@@ -155,18 +152,4 @@ class Indexer:
             self.DocsDictionary[doc]['row'] = -1
         return self.Cache
 
-    def print_messege(self, total_time):
-        self.message = self.message + "The size of the cache: {0:,} bytes\n\n" \
-                                      "The size of the index: {1:,} bytes\n\n" \
-                                      "The total time of the process: {2:,} seconds".format(
-            os.path.getsize("{0}cache".format(self.path)),
-            os.path.getsize(self.path + "new_merged_terms") + os.path.getsize(self.path + "merged_docs_postings.txt"),
-            round(total_time))
 
-        info = Tk()
-        info.title("Information")
-        info.geometry("300x300")
-        w = Label(info, text=self.message)
-        w.pack()
-
-        info.mainloop()
