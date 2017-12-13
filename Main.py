@@ -8,13 +8,13 @@ from Parser import Parser
 
 
 def Main():
-    # c = Controller()
-    # v = View(c)
-    # v.start()
+    c = Controller()
+    v = View(c)
+    v.start()
 
-    module = Master("./FB", "./postings")
-    # t = Thread(target=)
-    module.run_process(True, 20)
+    # module = Master("./FB", "./postings")
+    # # t = Thread(target=)
+    # module.run_process(True, 20)
 
     # start = time.time()
     # m = Master()

@@ -59,16 +59,16 @@ class Indexer:
     def merge(self, terms_output_file, docs_output_file):
         files_names = list(filter(lambda f: f.endswith("terms"), os.listdir(self.path)))
         files = list(map(lambda f: open(self.path + f), files_names))
-        self.TermDictionary = self.merge_files(terms_output_file, files, self.merge_term_line)
+        self.TermDictionary = self.merge_files(terms_output_file, files, self.merge_term_line, self.get_term_data_for_dictionary)
 
         files_names = list(filter(lambda f: f.endswith("docs"), os.listdir(self.path)))
         files = list(map(lambda f: open(self.path + f), files_names))
-        self.DocsDictionary = self.merge_files(docs_output_file, files, self.merdge_doc_line)
+        self.DocsDictionary = self.merge_files(docs_output_file, files, self.merdge_doc_line, self.get_doc_data_for_dictionary)
         self.message = self.message + "The number of terms indexed: {0:,} terms\n\n" \
-                                      "The number of Docs that were indexed: {1:,} Docs\n\n".format\
+                                      "The number of Docs that were indexed: {1:,} Docs\n\n".format \
             (len(self.TermDictionary), len(self.DocsDictionary))
 
-    def merge_files(self, output_file, input_files, merge_line_fn):
+    def merge_files(self, output_file, input_files, merge_line_fn, get_data_for_dict_fn):
         dictionary = {}
         file_row = 1
         output_file = open(self.path + output_file, 'w')
@@ -92,14 +92,24 @@ class Indexer:
                 [os.remove(file) for file in files_to_delete]
             for term in sorted_lines:
                 output_file.write(sorted_lines[term])
-
-                sum_tf = sum(map(lambda x: int(x.split(':')[1]), sorted_lines[term].split('#')[2].split('*')[:-1]))
-                dictionary[term] = file_row
+                term_data = get_data_for_dict_fn(file_row, sorted_lines, term)
+                dictionary[term] = term_data
                 file_row += 1
             output_file.flush()
             input_files = list(filter(lambda x: x.name not in files_to_delete, input_files))
         output_file.close()
         return dictionary
+
+    def get_doc_data_for_dictionary(self, file_row, sorted_lines, doc_id):
+        doc_id, most_frequent_term, term_count, doc_size = sorted_lines[doc_id].split('#')
+        doc_data = {'doc_id': doc_id, 'row': file_row}
+        return doc_data
+
+    def get_term_data_for_dictionary(self, file_row, sorted_lines, term):
+        term, df, docs = sorted_lines[term].split('#')
+        sum_tf = sum(map(lambda x: int(x.split(':')[1]), docs.split('*')[:-1]))
+        term_data = {'row': file_row, 'sum_tf': sum_tf, 'df': df}
+        return term_data
 
     def merge_term_line(self, line, sorted_lines):
         term, frec, doc_list = line.split('#')
@@ -107,8 +117,7 @@ class Indexer:
             sorted_lines[term] = line
         else:
             term2, frec2, doc_list2 = sorted_lines[term].split('#')
-            sorted_lines[term] = '#'.join(
-                [term, str(int(frec) + int(frec2)), doc_list.rstrip() + doc_list2])
+            sorted_lines[term] = '#'.join([term, str(int(frec) + int(frec2)), doc_list.rstrip() + doc_list2])
 
     def merdge_doc_line(self, line, sorted_lines):
         doc_data = line.split('#')

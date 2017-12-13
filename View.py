@@ -61,15 +61,15 @@ class View(Observer):
 
     def display_dictionary(self):
         dictionary_display_window = Toplevel(self.root)
-        term_table = Treeview(dictionary_display_window, columns=('term', 'row'))
+        term_table = Treeview(dictionary_display_window, columns=('term', 'sum_tf'))
         scroll_bar = Scrollbar(dictionary_display_window, orient=VERTICAL, command=term_table.yview)
         term_table['yscrollcommand'] = scroll_bar.set
         term_table.heading('term', text='Term')
-        term_table.heading('row', text='Row')
+        term_table.heading('sum_tf', text='Sum_tf')
         term_dict = self.controller.get_dictionary()
         i = 1
         for term in term_dict:
-            term_table.insert('', 'end', text=str(i), values=(term, str(term_dict[term])))
+            term_table.insert('', 'end', text=str(i), values=(term, str(term_dict[term]['sum_tf'])))
             i += 1
 
         term_table.grid(column=0, row=0, sticky=(N, W, E, S))
