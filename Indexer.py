@@ -1,4 +1,6 @@
+import linecache
 import os
+from collections import Counter
 from tkinter import *
 
 from tkinter import messagebox
@@ -9,6 +11,9 @@ class Indexer:
     def __init__(self, path=""):
         self.TermDictionary = {}
         self.DocsDictionary = {}
+        self.Cache = {}
+        self.terms_output_file = ''
+        self.docs_output_file = ''
 
         self.docs_posting = []
         self.terms_posting = []
@@ -57,13 +62,17 @@ class Indexer:
         self._index += 1
 
     def merge(self, terms_output_file, docs_output_file):
+        self.terms_output_file = terms_output_file
+        self.docs_output_file = docs_output_file
         files_names = list(filter(lambda f: f.endswith("terms"), os.listdir(self.path)))
         files = list(map(lambda f: open(self.path + f), files_names))
-        self.TermDictionary = self.merge_files(terms_output_file, files, self.merge_term_line, self.get_term_data_for_dictionary)
+        self.TermDictionary = self.merge_files(terms_output_file, files, self.merge_term_line,
+                                               self.get_term_data_for_dictionary)
 
         files_names = list(filter(lambda f: f.endswith("docs"), os.listdir(self.path)))
         files = list(map(lambda f: open(self.path + f), files_names))
-        self.DocsDictionary = self.merge_files(docs_output_file, files, self.merdge_doc_line, self.get_doc_data_for_dictionary)
+        self.DocsDictionary = self.merge_files(docs_output_file, files, self.merdge_doc_line,
+                                               self.get_doc_data_for_dictionary)
         self.message = self.message + "The number of terms indexed: {0:,} terms\n\n" \
                                       "The number of Docs that were indexed: {1:,} Docs\n\n".format \
             (len(self.TermDictionary), len(self.DocsDictionary))
@@ -123,40 +132,28 @@ class Indexer:
         doc_data = line.split('#')
         sorted_lines[doc_data[0]] = line
 
-    def cache(self):
-        f_cache = open("{0}cache".format(self.path), 'a')
-        line = 0
-        maxfrequency = []
-        counter = 1
-        dicfreqlines = {}
-        file = open("{0}merged_terms_postings.txt".format(self.path), 'r')
-        newfile = open(self.path + "new_merged_terms", 'a')
-        x = file.readline()
-        while (x != ''):
-            term, freq, doc_list = x.split('#')
-            dicfreqlines[line] = int(freq)
-            line += 1
-            x = file.readline()
+    def cache(self, limit):
+        term_frequency = Counter()
+        for term in self.TermDictionary:
+            term_frequency[term] = self.TermDictionary[term]['df']
 
-        while (counter <= 100):
-            maxfrequency.append(max(dicfreqlines, key=dicfreqlines.get))
-            dicfreqlines.pop(max(dicfreqlines, key=dicfreqlines.get), None)
-            counter += 1
+        most_common_terms = term_frequency.most_common(int(limit * 0.8))
+        docs_frequency = Counter()
+        for term, frec in most_common_terms:
+            row = self.TermDictionary[term]['row']
+            term_data = linecache.getline(self.path + self.terms_output_file, row)
+            self.Cache[term] = term_data
+            docs_with_term = [doc.split(':')[0] for doc in term_data.split('#')[2].split('*')]
+            docs_frequency.update(docs_with_term[:-1])
+            self.TermDictionary[term]['row'] = -1
 
-        counter = 0
-        file.seek(0)
-        x = file.readline()
-        while (x != ''):
-            if counter in maxfrequency:
-                f_cache.write(x)
-            else:
-                newfile.write(x)
-            x = file.readline()
-            counter += 1
-
-        f_cache.close()
-        file.close()
-        newfile.close()
+        most_common_docs = docs_frequency.most_common(int(limit * 0.2))
+        for doc, frec in most_common_docs:
+            row = self.DocsDictionary[doc]['row']
+            doc_data = linecache.getline(self.path + self.docs_output_file, row)
+            self.Cache[doc] = doc_data
+            self.DocsDictionary[doc]['row'] = -1
+        return self.Cache
 
     def print_messege(self, total_time):
         self.message = self.message + "The size of the cache: {0:,} bytes\n\n" \

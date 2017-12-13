@@ -14,6 +14,7 @@ class Master(Observable):
         super().__init__()
         self.TermDictionary = {}
         self.DocsDictionary = {}
+        self.Cache = {}
         self.file_reader = ReadFile()
         self.docs_path = docs_path
         self.parser = Parser("{0}/stop_words.txt".format(docs_path))
@@ -52,7 +53,7 @@ class Master(Observable):
         end = time.time()
         print("Read file time after merge: {0}".format(str((end - start) / 60) + " min"))
         self.notify_observers(progress=10, status='Creating Cache', done=False)
-        # self.indexer.cache()
+        self.Cache = self.indexer.cache(10000)
         end1 = time.time()
         print("Read file time after cache: {0}".format(str((end1 - start) / 60) + " min"))
         total_time = end - start
@@ -73,4 +74,7 @@ class Master(Observable):
 
     def get_term_dictionary(self):
         return self.TermDictionary
+
+    def get_cache(self):
+        return self.Cache
 

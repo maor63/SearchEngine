@@ -12,6 +12,7 @@ class Controller(Observer, Observable):
         self.module = None
         self.term_dict = {}
         self.docs_dict = {}
+        self.cache = {}
 
     def start_indexing(self, doc_path, posting_path, stem):
         executor = ThreadPoolExecutor(max_workers=5)
@@ -20,23 +21,28 @@ class Controller(Observer, Observable):
         self.module.set_observer(self)
         t = Thread(target=self.module.run_process, args=(stem, 5))
         t.start()
-        # self.module.run_process(stem)
-        # executor.submit(self.module.run_process, stem)
-        # self.term_dict = future_term_dict.result()
+        # self.module.run_process(stem)lt()
         # self.docs_dict = future_docs_dict.result()
+        # executor.submit(self.module.run_process, stem)
+        # self.term_dict = future_term_dict.resu
 
     def clean_postings(self):
         self.term_dict = {}
         self.docs_dict = {}
+        self.cache = {}
         if self.module is not None:
             self.module.clean_indexing()
 
     def get_dictionary(self):
         return self.term_dict
 
+    def get_cache(self):
+        return self.cache
+
     def update(self, **kwargs):
         if kwargs['done']:
             self.term_dict = self.module.get_term_dictionary()
+            self.cache = self.module.get_cache()
             self.notify_observers(status="Done!!!", done=True, progress=0)
         else:
             self.notify_observers(**kwargs)

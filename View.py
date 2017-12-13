@@ -75,6 +75,22 @@ class View(Observer):
         term_table.grid(column=0, row=0, sticky=(N, W, E, S))
         scroll_bar.grid(column=1, row=0, sticky=(N, S))
 
+    def display_cache(self):
+        dictionary_display_window = Toplevel(self.root)
+        term_table = Treeview(dictionary_display_window, columns=('key', 'data'))
+        scroll_bar = Scrollbar(dictionary_display_window, orient=VERTICAL, command=term_table.yview)
+        term_table['yscrollcommand'] = scroll_bar.set
+        term_table.heading('key', text='Key')
+        term_table.heading('data', text='Data')
+        cache = self.controller.get_cache()
+        i = 1
+        for key in cache:
+            term_table.insert('', 'end', text=str(i), values=(key, str(cache[key])))
+            i += 1
+
+        term_table.grid(column=0, row=0, sticky=(N, W, E, S))
+        scroll_bar.grid(column=1, row=0, sticky=(N, S))
+
     def docs_browse_location(self):
         dir_path = filedialog.askdirectory()
         self.docs_entry.delete(0, len(self.docs_entry.get()))
@@ -110,6 +126,3 @@ class View(Observer):
 
     def reset_data(self):
         self.controller.clean_postings()
-
-    def display_cache(self):
-        pass
