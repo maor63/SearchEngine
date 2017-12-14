@@ -1,7 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
 
-from Master import Master
+from Model import Model
 from Observable import Observable
 from Observer import Observer
 
@@ -16,7 +16,7 @@ class Controller(Observer, Observable):
 
     def start_indexing(self, doc_path, posting_path, stem):
         print("Stemming: {0}".format(stem))
-        self.module = Master(doc_path, posting_path)
+        self.module = Model(doc_path, posting_path)
         self.module.set_observer(self)
         t = Thread(target=self.module.run_process, args=(stem, 5))
         t.start()

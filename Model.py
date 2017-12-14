@@ -11,7 +11,7 @@ from Stemmer import Stemmer
 import time
 
 
-class Master(Observable):
+class Model(Observable):
     def __init__(self, docs_path, postings_path):
         super().__init__()
         self.TermDictionary = {}
