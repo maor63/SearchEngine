@@ -24,6 +24,12 @@ class Indexer:
         self.message = "\n"
 
     def index_terms(self, terms_dict, doc):
+        '''
+        index terms for posting and sort them in self.term_to_doc_id {SortedDict()} , sort by term
+        and index docs for posting and save them in self.docs_posting
+        :param terms_dict: terms from document
+        :param doc: the document
+        '''
         if len(terms_dict) == 0:
             return
         most_frequent = str(max(terms_dict, key=terms_dict.get))
@@ -36,12 +42,19 @@ class Indexer:
             self.term_to_doc_id[term][doc.id] = terms_dict[term]
 
     def clean_postings(self):
+        '''
+        delete cch dic and posting files
+        '''
         postings_files = list(
             filter(lambda x: x.endswith('.p') or x.endswith('.cch') or x.endswith('.dic'), os.listdir(self.path)))
         for f in postings_files:
             os.remove(self.path + f)
 
     def flush(self):
+        '''
+        write the terms sorted in self.term_to_doc_id to temp terms posting file
+        and write the docs from self.docs_posting to temp doc posting file
+        '''
         for term in self.term_to_doc_id:
             term_row = term + "#" + str(len(self.term_to_doc_id[term])) + "#"
             for doc in self.term_to_doc_id[term]:
@@ -65,20 +78,45 @@ class Indexer:
         self._index += 1
 
     def merge_postings(self, terms_output_file, docs_output_file):
-        self.terms_output_file = terms_output_file
+        '''
+        merge docs temp posting files to @docs_output_file
+        and merge terms temp posting files to @terms_output_file
+        and create Dictionaries
+        :return: the term_dictionary and docs_dictionary
+        '''
+        self.merge_terms_postings(terms_output_file)
+        self.merge_docs_postings(docs_output_file)
+        return self.TermDictionary, self.DocsDictionary
+
+    def merge_docs_postings(self, docs_output_file):
+        '''
+        merge doc postings and set self.DocsDictionary
+        '''
         self.docs_output_file = docs_output_file
+        files_names = list(filter(lambda f: f.endswith("docs"), os.listdir(self.path)))
+        files = list(map(lambda f: open(self.path + f, 'r'), files_names))
+        self.DocsDictionary = self.merge_files(docs_output_file, files, self.merdge_doc_line,
+                                               self.get_doc_data_for_dictionary)
+
+    def merge_terms_postings(self, terms_output_file):
+        '''
+        merge term posting and set self.TermDictionary
+        '''
+        self.terms_output_file = terms_output_file
         files_names = list(filter(lambda f: f.endswith("terms"), os.listdir(self.path)))
         files = list(map(lambda f: open(self.path + f, 'r'), files_names))
         self.TermDictionary = self.merge_files(terms_output_file, files, self.merge_term_line,
                                                self.get_term_data_for_dictionary)
 
-        files_names = list(filter(lambda f: f.endswith("docs"), os.listdir(self.path)))
-        files = list(map(lambda f: open(self.path + f, 'r'), files_names))
-        self.DocsDictionary = self.merge_files(docs_output_file, files, self.merdge_doc_line,
-                                               self.get_doc_data_for_dictionary)
-        return self.TermDictionary, self.DocsDictionary
-
     def merge_files(self, output_file, input_files, merge_line_fn, get_data_for_dict_fn):
+        '''
+        merge algorithm for sorted files
+        :param output_file: merged sorted file
+        :param input_files: input sorted files
+        :param merge_line_fn: merge function
+        :param get_data_for_dict_fn: data retrieve function
+        :return: the final Dictionary from the merge
+        '''
         dictionary = {}
         file_row = 1
         output_file = open(self.path + output_file, 'w')
@@ -114,17 +152,36 @@ class Indexer:
         return dictionary
 
     def get_doc_data_for_dictionary(self, file_row, sorted_lines, doc_id):
+        '''
+        retrieve data from doc posting
+        :param file_row: the row number
+        :param sorted_lines: lines dict => {doc_id, doc_posting_data}
+        :param doc_id: doc id
+        :return: doc data
+        '''
         doc_id, most_frequent_term, term_count, doc_size = sorted_lines[doc_id].split('#')
         doc_data = {'doc_id': doc_id, 'row': file_row}
         return doc_data
 
     def get_term_data_for_dictionary(self, file_row, sorted_lines, term):
+        '''
+        retrieve data from term posting
+        :param file_row: the row number
+        :param sorted_lines: lines dict => {term, term_data}
+        :param term: term
+        :return: term data
+        '''
         term, df, docs = sorted_lines[term].split('#')
         sum_tf = sum(map(lambda x: int(x.split(':')[1]), docs.split('*')[:-1]))
         term_data = {'row': file_row, 'sum_tf': sum_tf, 'df': df}
         return term_data
 
     def merge_term_line(self, line, sorted_lines):
+        '''
+        merge and insert term data to sorted_lines 
+        :param line: term data line
+        :param sorted_lines: {term, term_data}
+        '''
         term, frec, doc_list = line.split('#')
         if term not in sorted_lines:
             sorted_lines[term] = line
@@ -133,10 +190,20 @@ class Indexer:
             sorted_lines[term] = '#'.join([term, str(int(frec) + int(frec2)), doc_list.rstrip() + doc_list2])
 
     def merdge_doc_line(self, line, sorted_lines):
+        '''
+        merge and insert doc data to sorted_lines 
+        :param line: doc data line
+        :param sorted_lines: {doc_id, doc_posting_data}
+        '''
         doc_data = line.split('#')
         sorted_lines[doc_data[0]] = line
 
     def create_cache(self, limit):
+        '''
+        generate cach from term dictionary
+        :param limit: the limit of terms in cache
+        :return: the cache dict
+        '''
         term_frequency = Counter()
         for term in self.TermDictionary:
             term_frequency[term] = self.TermDictionary[term]['df']
