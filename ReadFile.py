@@ -1,6 +1,6 @@
 import re
 import os
-
+import codecs
 from Document import Document
 from Parser import Parser
 
@@ -35,23 +35,22 @@ class ReadFile:
             if i % threshold == 0:
                 yield docs
                 docs = []
-
         yield docs
 
     def read_docs_from_FB_file(self, file_path):
         return self.read_from_file(self.remove_language_artical_type_rows, file_path)
 
     def read_docs_from_FT_file(self, file_path):
-        return self.read_from_file(self.remove_redundant_sings, file_path)
+        return self.read_from_file(self.remove_redundant_signs, file_path)
 
     def read_docs_from_LA_file(self, file_path):
-        return self.read_from_file(self.remove_p_tags, file_path)
+        return self.read_from_file(self.remove_redundant_signs, file_path)
 
     def read_from_file(self, clean_fn, file_path):
         docs = []
         if not os.path.exists(file_path):
             return docs
-        file = open(file_path)
+        file = open(file_path, 'r')
         file_text = file.read()
         file_text = file_text
         raw_docs = file_text.split("</DOC>\n")
@@ -77,14 +76,6 @@ class ReadFile:
         d.text = raw_doc[s_doc_text + len("<TEXT>"): e_doc_text].strip()
         return d
 
-    def remove_p_tags(self, doc):
-        # text = doc.text.split("<P>\n</P>")
-        # text[0] = text[0].replace("<P>\n", "")
-        # text[len(text) - 1] = text[len(text) - 1].replace("</P>", "")
-        # doc.text = "\n".join(text)
-        doc.text = self.text_tags.sub('', doc.text)
-        return doc
-
     def remove_language_artical_type_rows(self, doc):
         text = self.text_tags.sub('', doc.text)
         text_rows = text.split("\n")
@@ -96,6 +87,6 @@ class ReadFile:
         doc.text = doc.text.strip()
         return doc
 
-    def remove_redundant_sings(self, doc):
+    def remove_redundant_signs(self, doc):
         doc.text = self.text_tags.sub('', doc.text)
         return doc

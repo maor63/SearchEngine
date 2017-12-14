@@ -8,6 +8,18 @@ from Parser import Parser
 
 
 def Main():
+    # r = ReadFile()
+    #
+    # d = r.read_files('./corpus/')
+    # try:
+    #     for a in d:
+    #
+    #             doc = []
+    #             for b in a:
+    #                 doc.append(b)
+    # except Exception:
+    #     print(Exception)
+
     c = Controller()
     v = View(c)
     v.start()

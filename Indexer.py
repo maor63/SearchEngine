@@ -63,7 +63,7 @@ class Indexer:
         self.term_to_doc_id = SortedDict()
         self._index += 1
 
-    def merge(self, terms_output_file, docs_output_file):
+    def merge_postings(self, terms_output_file, docs_output_file):
         self.terms_output_file = terms_output_file
         self.docs_output_file = docs_output_file
         files_names = list(filter(lambda f: f.endswith("terms"), os.listdir(self.path)))
@@ -75,6 +75,7 @@ class Indexer:
         files = list(map(lambda f: open(self.path + f, 'r'), files_names))
         self.DocsDictionary = self.merge_files(docs_output_file, files, self.merdge_doc_line,
                                                self.get_doc_data_for_dictionary)
+        return self.TermDictionary, self.DocsDictionary
 
     def merge_files(self, output_file, input_files, merge_line_fn, get_data_for_dict_fn):
         dictionary = {}
@@ -134,25 +135,15 @@ class Indexer:
         doc_data = line.split('#')
         sorted_lines[doc_data[0]] = line
 
-    def cache(self, limit):
+    def create_cache(self, limit):
         term_frequency = Counter()
         for term in self.TermDictionary:
             term_frequency[term] = self.TermDictionary[term]['df']
 
-        most_common_terms = term_frequency.most_common(int(limit * 0.8))
-        docs_frequency = Counter()
+        most_common_terms = term_frequency.most_common(limit)
         for term, frec in most_common_terms:
             row = self.TermDictionary[term]['row']
             term_data = linecache.getline(self.path + self.terms_output_file, row)
             self.Cache[term] = term_data
-            docs_with_term = [doc.split(':')[0] for doc in term_data.split('#')[2].split('*')]
-            docs_frequency.update(docs_with_term[:-1])
             self.TermDictionary[term]['row'] = -1
-
-        most_common_docs = docs_frequency.most_common(int(limit * 0.2))
-        for doc, frec in most_common_docs:
-            row = self.DocsDictionary[doc]['row']
-            doc_data = linecache.getline(self.path + self.docs_output_file, row)
-            self.Cache[doc] = doc_data
-            self.DocsDictionary[doc]['row'] = -1
         return self.Cache

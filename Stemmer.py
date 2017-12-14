@@ -27,3 +27,4 @@ class Stemmer:
                 stemed_term = self.stemmer.stem(term)
                 new_term_dict[stemed_term] += term_dict[term]
         return dict(new_term_dict)
+ 
