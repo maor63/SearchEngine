@@ -135,6 +135,7 @@ class View(Observer):
             self.to_stem = False
 
     def reset_data(self):
+        self.reset_btn['state'] = 'disabled'
         self.controller.clean_postings()
 
     def display_summary(self, summary):

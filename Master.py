@@ -18,8 +18,8 @@ class Master(Observable):
         self.DocsDictionary = {}
         self.Cache = {}
         self.file_reader = ReadFile()
-        self.docs_path = docs_path
-        self.parser = Parser("{0}/stop_words.txt".format(docs_path))
+        self.docs_path = "{0}/".format(docs_path)
+        self.parser = Parser(self.docs_path + "stop_words.txt")
         self.stemmer = Stemmer()
         self.posting_path = "{0}/".format(postings_path)
         self.indexer = Indexer(self.posting_path)
@@ -69,7 +69,7 @@ class Master(Observable):
             terms_dict = self.parse_text(doc.text)
             if stemming:
                 terms_dict = self.stemmer.stem(terms_dict)
-            self.indexer.index(terms_dict, doc)
+            self.indexer.index_terms(terms_dict, doc)
 
     def parse_text(self, text):
         return self.parser.parse(text)

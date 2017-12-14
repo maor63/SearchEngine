@@ -23,7 +23,7 @@ class Indexer:
         self._index = 0
         self.message = "\n"
 
-    def index(self, terms_dict, doc):
+    def index_terms(self, terms_dict, doc):
         if len(terms_dict) == 0:
             return
         most_frequent = str(max(terms_dict, key=terms_dict.get))
@@ -36,7 +36,8 @@ class Indexer:
             self.term_to_doc_id[term][doc.id] = terms_dict[term]
 
     def clean_postings(self):
-        postings_files = list(filter(lambda x: x.endswith('.p'), os.listdir(self.path)))
+        postings_files = list(
+            filter(lambda x: x.endswith('.p') or x.endswith('.cch') or x.endswith('.dic'), os.listdir(self.path)))
         for f in postings_files:
             os.remove(self.path + f)
 

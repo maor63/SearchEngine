@@ -12,10 +12,7 @@ class ReadFile:
 
     def count_docs(self, path):
         all_sub_folders = os.listdir(path)
-        i = 1
-        for curr_folder in all_sub_folders:
-            i += 1
-        return i
+        return sum(map(lambda x: 1, all_sub_folders))
 
     def read_files(self, path, threshold=5):
         all_sub_folders = os.listdir(path)
