@@ -8,32 +8,9 @@ from Parser import Parser
 
 
 def Main():
-    # r = ReadFile()
-    #
-    # d = r.read_files('./corpus/')
-    # try:
-    #     for a in d:
-    #
-    #             doc = []
-    #             for b in a:
-    #                 doc.append(b)
-    # except Exception:
-    #     print(Exception)
-
     c = Controller()
     v = View(c)
     v.start()
-
-    # module = Master("./FB", "./postings")
-    # # t = Thread(target=)
-    # module.run_process(True, 20)
-
-    # start = time.time()
-    # m = Master()
-    # m.run_process()
-    # #
-    # end = time.time()
-    # print("Read file time: {0}".format(str(end - start)))
 
 
 if __name__ == '__main__':

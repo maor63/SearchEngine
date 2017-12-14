@@ -1,6 +1,6 @@
-import re
 import os
-import codecs
+import re
+
 from Document import Document
 from Parser import Parser
 
@@ -11,10 +11,19 @@ class ReadFile:
         self.parser = Parser("")
 
     def count_docs(self, path):
+        '''
+        return the count of the files in a given @path
+        '''
         all_sub_folders = os.listdir(path)
         return sum(map(lambda x: 1, all_sub_folders))
 
     def read_files(self, path, threshold=5):
+        '''
+        create an iterator of the files in the given path
+        :param path: files paths
+        :param threshold: the amount of files returned each iteration, batch limit
+        :return: iterator that returns batch of files
+        '''
         all_sub_folders = os.listdir(path)
         docs = []
         i = 1
@@ -35,15 +44,30 @@ class ReadFile:
         yield docs
 
     def read_docs_from_FB_file(self, file_path):
+        '''
+        read FB file type
+        '''
         return self.read_from_file(self.remove_language_artical_type_rows, file_path)
 
     def read_docs_from_FT_file(self, file_path):
+        '''
+        read FT file type
+        '''
         return self.read_from_file(self.remove_redundant_signs, file_path)
 
     def read_docs_from_LA_file(self, file_path):
+        '''
+        read LA file type
+        '''
         return self.read_from_file(self.remove_redundant_signs, file_path)
 
     def read_from_file(self, clean_fn, file_path):
+        '''
+        create documents from file
+        :param clean_fn: function for cleaning the text of the doc
+        :param file_path: the path of the file 
+        :return: the documents from the file
+        '''
         docs = []
         if not os.path.exists(file_path):
             return docs
@@ -60,6 +84,11 @@ class ReadFile:
         return docs
 
     def create_doc_from_raw(self, raw_doc):
+        '''
+        take raw document and convert it to Document object
+        :param raw_doc: 
+        :return: 
+        '''
         d = Document()
         s_doc_id = raw_doc.find("<DOCNO>")
         e_doc_id = raw_doc.find("</DOCNO>", s_doc_id + len("<DOCNO>"))
@@ -74,6 +103,11 @@ class ReadFile:
         return d
 
     def remove_language_artical_type_rows(self, doc):
+        '''
+        remove the "Language:" row and "Artical:" row from document text
+        :param doc: document
+        :return: clean document
+        '''
         text = self.text_tags.sub('', doc.text)
         text_rows = text.split("\n")
         if text_rows[0].startswith("Language:") and text_rows[1].startswith("Article Type:"):
@@ -85,5 +119,10 @@ class ReadFile:
         return doc
 
     def remove_redundant_signs(self, doc):
+        '''
+        remove tags from document text
+        :param doc: document
+        :return: clean document
+        '''
         doc.text = self.text_tags.sub('', doc.text)
         return doc
