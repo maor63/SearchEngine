@@ -26,6 +26,8 @@ class View(Observer):
         self.reset_btn = Button(text="Reset process", fg="red", command=self.reset_data)
         self.dictionary_btn = Button(text="Show dictionary", fg="red", command=self.display_dictionary)
         self.cache_btn = Button(text="Show cache", fg="red", command=self.display_cache)
+        self.save_btn = Button(text="Save dictionary and cache", command=self.save_dictionary_cache)
+        self.upload_btn = Button(text="Upload dictionary and cache", command=self.upload_dictionary_cache)
         self.status_bar = Label(self.root)
         self.status_bar_text = StringVar()
         self.status_bar['textvariable'] = self.status_bar_text
@@ -53,10 +55,8 @@ class View(Observer):
         self.reset_btn['state'] = 'disabled'
         self.cache_btn.grid(row=6, column=1)
         self.dictionary_btn.grid(row=6, column=2)
-        save_btn = Button(text="Save dictionary and cache", command=self.save_dictionary_cache)
-        save_btn.grid(row=7, column=1)
-        upload_btn = Button(text="Upload dictionary and cache", command=self.upload_dictionary_cache)
-        upload_btn.grid(row=7, column=2)
+        self.save_btn.grid(row=7, column=1)
+        self.upload_btn.grid(row=7, column=2)
         self.stem_checkbutton.grid(row=5, column=0)
         self.status_bar.grid(row=8, column=0, columnspan=3, sticky=W)
         self.progress_bar.grid(row=9, column=0, columnspan=3, sticky=(W, E))
@@ -108,6 +108,8 @@ class View(Observer):
         self.dictionary_btn['state'] = 'disabled'
         self.cache_btn['state'] = 'disabled'
         self.reset_btn['state'] = 'disabled'
+        self.save_btn['state'] = 'disabled'
+        self.upload_btn['state'] = 'disabled'
         self.stem_checkbutton['state'] = 'disabled'
         self.progress_bar['value'] = 0
         self.controller.start_indexing(self.docs_entry.get(), self.posting_entry.get(), self.to_stem)
@@ -119,6 +121,8 @@ class View(Observer):
             self.progress_bar['value'] = 100
             self.start_btn['state'] = 'normal'
             self.reset_btn['state'] = 'normal'
+            self.save_btn['state'] = 'normal'
+            self.upload_btn['state'] = 'normal'
             self.dictionary_btn['state'] = 'normal'
             self.cache_btn['state'] = 'normal'
             self.stem_checkbutton['state'] = 'normal'

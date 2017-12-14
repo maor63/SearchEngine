@@ -53,6 +53,7 @@ class ReadFile:
             return docs
         file = open(file_path)
         file_text = file.read()
+        file_text = file_text
         raw_docs = file_text.split("</DOC>\n")
         for raw_doc in raw_docs:
             doc = self.create_doc_from_raw(raw_doc)

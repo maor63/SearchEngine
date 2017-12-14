@@ -4,6 +4,7 @@ from collections import Counter
 from tkinter import *
 import codecs
 from tkinter import messagebox
+
 from sortedcollections import SortedDict
 
 
@@ -48,12 +49,12 @@ class Indexer:
             self.terms_posting.append(term_row)
 
         if len(self.terms_posting) > 0:
-            f_terms = codecs.open("{0}{1}_terms".format(self.path, str(self._index)), 'w', 'utf-8')
+            f_terms = open("{0}{1}_terms".format(self.path, str(self._index)), 'w')
             f_terms.writelines(self.terms_posting)
             f_terms.close()
 
         if len(self.docs_posting) > 0:
-            f_docs = codecs.open("{0}{1}_docs".format(self.path, str(self._index)), 'w', 'utf-8')
+            f_docs = open("{0}{1}_docs".format(self.path, str(self._index)), 'w')
             f_docs.writelines(self.docs_posting)
             f_docs.close()
 
@@ -66,12 +67,12 @@ class Indexer:
         self.terms_output_file = terms_output_file
         self.docs_output_file = docs_output_file
         files_names = list(filter(lambda f: f.endswith("terms"), os.listdir(self.path)))
-        files = list(map(lambda f: open(self.path + f), files_names))
+        files = list(map(lambda f: open(self.path + f, 'r'), files_names))
         self.TermDictionary = self.merge_files(terms_output_file, files, self.merge_term_line,
                                                self.get_term_data_for_dictionary)
 
         files_names = list(filter(lambda f: f.endswith("docs"), os.listdir(self.path)))
-        files = list(map(lambda f: open(self.path + f), files_names))
+        files = list(map(lambda f: open(self.path + f, 'r'), files_names))
         self.DocsDictionary = self.merge_files(docs_output_file, files, self.merdge_doc_line,
                                                self.get_doc_data_for_dictionary)
 
@@ -79,6 +80,7 @@ class Indexer:
         dictionary = {}
         file_row = 1
         output_file = open(self.path + output_file, 'w')
+        # output_file.write('# -*- coding: utf-8 -*-\n')
         while len(input_files) > 0:
             sorted_lines = SortedDict()
             files_to_delete = set()
@@ -98,7 +100,9 @@ class Indexer:
             if len(files_to_delete) > 0:
                 [os.remove(file) for file in files_to_delete]
             for term in sorted_lines:
-                output_file.write(sorted_lines[term])
+                line = sorted_lines[term]
+                line = line.encode('ascii', 'replace').decode('ascii')
+                output_file.write(line)
                 term_data = get_data_for_dict_fn(file_row, sorted_lines, term)
                 dictionary[term] = term_data
                 file_row += 1
@@ -152,5 +156,3 @@ class Indexer:
             self.Cache[doc] = doc_data
             self.DocsDictionary[doc]['row'] = -1
         return self.Cache
-
-
