@@ -1,6 +1,7 @@
 import linecache
 import os
 from collections import Counter
+import csv
 from tkinter import *
 import codecs
 from tkinter import messagebox
@@ -203,10 +204,20 @@ class Indexer:
         '''
         if self.TermDictionary != {}:
             return self.TermDictionary
-        f = open(self.path + self.terms_output_file, 'r')
-        for i, line in enumerate(f):
-            term, term_data = self.get_data_from_term_posting_line(line, i + 1)
-            self.TermDictionary[term] = term_data
+        # f = open(self.path + self.terms_output_file, 'r+')
+        # for i, line in enumerate(f):
+        #     term, term_data = self.get_data_from_term_posting_line(line, f.tell())
+        #     self.TermDictionary[term] = term_data
+
+        with open(self.path + self.terms_output_file, 'r+') as f:
+            file_pos = f.tell()
+            line = f.readline()
+            while line:
+                term, term_data = self.get_data_from_term_posting_line(line, file_pos)
+                self.TermDictionary[term] = term_data
+                file_pos = f.tell()
+                line = f.readline()
+
         return self.TermDictionary
 
     def get_doc_dictionary(self):
@@ -235,9 +246,27 @@ class Indexer:
         most_common_terms = term_frequency.most_common(limit)
         for term, frec in most_common_terms:
             row = self.TermDictionary[term]['row']
-            term_data = linecache.getline(self.path + self.terms_output_file, row)
+            # term_data = linecache.getline(self.path + self.terms_output_file, row)
+            f = open(self.path + self.terms_output_file, 'r')
+            f.seek(row)
+            term_data = f.readline().rstrip()
             if term_data == '':
                 print("term: " + term + " row: " + str(row))
             self.Cache[term] = term_data
             self.TermDictionary[term]['row'] = -1
         return self.Cache
+
+    def export_term_dictionary_to_csv(self, csv_name):
+        '''
+        export to csv for statistics for the report
+        '''
+        fieldnames = ['term', 'df', 'sum_tf']
+        with open(self.path + csv_name, 'w') as csv_file:
+            csv_file.write(','.join(fieldnames) + '\n')
+            for term in self.TermDictionary:
+                df = self.TermDictionary[term]['df']
+                sum_tf = self.TermDictionary[term]['sum_tf']
+                if sum_tf > 2:
+                    csv_file.write(','.join([term, str(df), str(sum_tf)]) + '\n')
+
+
