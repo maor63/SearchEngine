@@ -204,11 +204,6 @@ class Indexer:
         '''
         if self.TermDictionary != {}:
             return self.TermDictionary
-        # f = open(self.path + self.terms_output_file, 'r+')
-        # for i, line in enumerate(f):
-        #     term, term_data = self.get_data_from_term_posting_line(line, f.tell())
-        #     self.TermDictionary[term] = term_data
-
         with open(self.path + self.terms_output_file, 'r+') as f:
             file_pos = f.tell()
             line = f.readline()
