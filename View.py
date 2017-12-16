@@ -30,10 +30,12 @@ class View(Observer):
         self.cache_btn = Button(text="Show cache", fg="red", command=self.display_cache)
         self.save_btn = Button(text="Save dictionary and cache", command=self.save_dictionary_cache)
         self.upload_btn = Button(text="Upload dictionary and cache", command=self.upload_dictionary_cache)
+        self.show_summary = Button(text="Show summary", command=self.display_summary)
         self.status_bar = Label(self.root)
         self.status_bar_text = StringVar()
         self.status_bar['textvariable'] = self.status_bar_text
         self.status_bar_text.set('Status:')
+        self.summary = {}
         self.create_view()
 
     def start(self):
@@ -57,6 +59,8 @@ class View(Observer):
         self.reset_btn['state'] = 'disabled'
         self.cache_btn.grid(row=6, column=1)
         self.dictionary_btn.grid(row=6, column=2)
+        self.show_summary.grid(row=7, column=0)
+        self.show_summary['state'] = 'disabled'
         self.save_btn.grid(row=7, column=1)
         self.upload_btn.grid(row=7, column=2)
         self.stem_checkbutton.grid(row=5, column=0)
@@ -113,6 +117,7 @@ class View(Observer):
         self.save_btn['state'] = 'disabled'
         self.upload_btn['state'] = 'disabled'
         self.stem_checkbutton['state'] = 'disabled'
+        self.show_summary['state'] = 'disabled'
         self.progress_bar['value'] = 0
         self.controller.start_indexing(self.docs_entry.get(), self.posting_entry.get(), self.to_stem)
 
@@ -128,7 +133,9 @@ class View(Observer):
             self.dictionary_btn['state'] = 'normal'
             self.cache_btn['state'] = 'normal'
             self.stem_checkbutton['state'] = 'normal'
-            self.display_summary(kwargs['summary'])
+            self.summary = kwargs['summary']
+            self.show_summary['state'] = 'normal'
+            self.display_summary()
 
     def change_stem_state(self):
         if self.to_stem is False:
@@ -140,7 +147,8 @@ class View(Observer):
         self.reset_btn['state'] = 'disabled'
         self.controller.clean_postings()
 
-    def display_summary(self, summary):
+    def display_summary(self):
+        summary = self.summary
         display_window = Toplevel(self.root)
         message = "The number of terms indexed: {0:,} terms\n\n" \
                   "The number of Docs that were indexed: {1:,} Docs\n\n" \
