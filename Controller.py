@@ -71,3 +71,5 @@ class Controller(Observer, Observable):
             self.notify_observers(status="Done!!!", done=True, progress=0, summary=kwargs['summary'])
         else:
             self.notify_observers(**kwargs)
+
+

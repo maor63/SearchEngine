@@ -30,20 +30,22 @@ class Model(Observable):
     def run_process(self, stemming=True, threshold=5):
         start = time.time()
         self.create_temp_postings(stemming, threshold)
-        terms_postings = "merged_terms_postings.p"
-        docs_postings = 'merged_docs_postings.p'
+        terms_postings = "merged_terms_postings"
+        docs_postings = "merged_docs"
         if stemming:
             terms_postings = "stemed_" + terms_postings
-            docs_postings = "stemed_" + docs_postings
         end = time.time()
         print("Read file time after indexing: {0}".format(str((end - start) / 60) + " min"))
-        self.notify_observers(progress=50, status='Merging posting files', done=False)
-        self.TermDictionary, self.DocsDictionary = self.indexer.merge_postings(terms_postings, docs_postings)
+        self.notify_observers(progress=40, status='Merging posting files', done=False)
+        self.indexer.merge_terms_postings(terms_postings)
+        self.indexer.merge_docs_postings(docs_postings)
+        self.TermDictionary = self.indexer.get_term_dictionary()
+        self.DocsDictionary = self.indexer.get_doc_dictionary()
 
         end = time.time()
         print("Read file time after merge: {0}".format(str((end - start) / 60) + " min"))
 
-        self.notify_observers(progress=50, status='Creating Cache', done=False)
+        self.notify_observers(progress=40, status='Creating Cache', done=False)
         self.Cache = self.indexer.create_cache(10000)
         end1 = time.time()
         print("Read file time after cache: {0}".format(str((end1 - start) / 60) + " min"))

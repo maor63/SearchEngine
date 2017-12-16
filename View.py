@@ -6,6 +6,8 @@ from tkinter.ttk import Treeview, Progressbar
 
 import os
 
+import time
+
 from Observer import Observer
 
 
