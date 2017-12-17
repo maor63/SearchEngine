@@ -64,10 +64,6 @@ class Model(Observable):
                    'total_time': round(total_time), 'cache_size': sys.getsizeof(self.Cache),
                    'terms_size': os.path.getsize(self.posting_path + terms_postings),
                    'docs_size': os.path.getsize(self.posting_path + docs_postings)}
-        if stemming:
-            self.indexer.export_term_dictionary_to_csv('statistics_stemmed.csv')
-        else:
-            self.indexer.export_term_dictionary_to_csv('statistics.csv')
         self.notify_observers(done=True, summary=summary)
 
     def create_temp_postings(self, stemming, threshold):
