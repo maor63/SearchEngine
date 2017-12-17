@@ -1,4 +1,3 @@
-from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
 
 from Model import Model

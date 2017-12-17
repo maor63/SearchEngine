@@ -1,5 +1,5 @@
 import pickle
-from tkinter import filedialog
+# from tkinter import filedialog
 from tkinter import *
 from tkinter.filedialog import asksaveasfile, askopenfilename
 from tkinter.ttk import Treeview, Progressbar
@@ -39,9 +39,15 @@ class View(Observer):
         self.create_view()
 
     def start(self):
+        '''
+        start the user interface
+        '''
         self.root.mainloop()
 
     def create_view(self):
+        '''
+        create the view window
+        '''
         theme_label = Label(self.root, text="Search Engine", bg="blue", fg="white")
         theme_label.grid(row=0, column=1)
         doc_label = Label(self.root, text="Documents and Stop-Words:")
@@ -68,6 +74,9 @@ class View(Observer):
         self.progress_bar.grid(row=9, column=0, columnspan=3, sticky=(W, E))
 
     def display_dictionary(self):
+        '''
+        display the dictionary
+        '''
         term_dict = self.controller.get_dictionary()
         dictionary_display_window = Toplevel(self.root)
         term_table = Treeview(dictionary_display_window, columns=('term', 'sum_tf'))
@@ -84,6 +93,9 @@ class View(Observer):
         scroll_bar.grid(column=1, row=0, sticky=(N, S))
 
     def display_cache(self):
+        '''
+        display the cache
+        '''
         cache = self.controller.get_cache()
         dictionary_display_window = Toplevel(self.root)
         term_table = Treeview(dictionary_display_window, columns=('term', 'file_pos', 'docs'))
@@ -104,16 +116,25 @@ class View(Observer):
         scroll_bar_y.grid(column=1, row=0, sticky=(N, S))
 
     def docs_browse_location(self):
+        '''
+        ask the carpus and stopwords directory path
+        '''
         dir_path = filedialog.askdirectory()
         self.docs_entry.delete(0, len(self.docs_entry.get()))
         self.docs_entry.insert(0, dir_path)
 
     def posting_browse_location(self):
+        '''
+        ask the posting directory
+        '''
         dir_path = filedialog.askdirectory()
         self.posting_entry.delete(0, len(self.posting_entry.get()))
         self.posting_entry.insert(0, dir_path)
 
     def start_indexing(self):
+        '''
+        change the display to disabled mode
+        '''
         self.start_btn['state'] = 'disabled'
         self.dictionary_btn['state'] = 'disabled'
         self.cache_btn['state'] = 'disabled'
@@ -126,6 +147,9 @@ class View(Observer):
         self.controller.start_indexing(self.docs_entry.get(), self.posting_entry.get(), self.to_stem)
 
     def update(self, **kwargs):
+        '''
+        change the display to normal mode
+        '''
         self.status_bar_text.set("Status: " + kwargs['status'])
         self.progress_bar.step(kwargs['progress'])
         if kwargs['done']:
@@ -142,16 +166,26 @@ class View(Observer):
             self.display_summary()
 
     def change_stem_state(self):
+        '''
+        change the process to stemming mode
+        '''
         if self.to_stem is False:
             self.to_stem = True
         else:
             self.to_stem = False
 
     def reset_data(self):
+        '''
+        delete cch dic and posting files
+        '''
         self.reset_btn['state'] = 'disabled'
         self.controller.clean_postings()
 
     def display_summary(self):
+        '''
+        display information about posting and cache files and runtime
+        :param details about the process
+        '''
         summary = self.summary
         display_window = Toplevel(self.root)
         message = "The number of terms indexed: {0:,} terms\n\n" \
@@ -168,6 +202,9 @@ class View(Observer):
         w.pack()
 
     def save_dictionary_cache(self):
+        '''
+        save the dictionary and the cache to the memory
+        '''
         file_dictionary = asksaveasfile(mode='bw', defaultextension=".dic", title='Save Dictionary')
         if file_dictionary is None:
             return
@@ -181,6 +218,9 @@ class View(Observer):
         file_cache.close()
 
     def upload_dictionary_cache(self):
+        '''
+        upload the dictionary and the cache from the memory
+        '''
         file_dictionary = askopenfilename(filetypes=(("dictionary files", "*.dic"), ("dic", "*.*")),
                                           title='Upload Dictionary')
         if file_dictionary is '':

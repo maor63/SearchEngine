@@ -60,6 +60,9 @@ class Parser:
         return added_terms
 
     def _remove_dot_from_terms(self, raw_terms):
+        '''
+        remove dot in the end of terms
+        '''
         for i, term in enumerate(raw_terms):
             if len(term) > 0 and term[len(term) - 1] == '.':
                 raw_terms[i] = term[:-1]

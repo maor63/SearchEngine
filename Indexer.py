@@ -1,10 +1,5 @@
-import linecache
 import os
 from collections import Counter
-import csv
-from tkinter import *
-import codecs
-from tkinter import messagebox
 
 from sortedcollections import SortedDict
 

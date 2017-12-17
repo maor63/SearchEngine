@@ -25,6 +25,9 @@ class Model(Observable):
         self.indexer = Indexer(self.posting_path)
 
     def clean_indexing(self):
+        '''
+        delete posting folder content
+        '''
         self.indexer.clean_postings()
 
     def run_process(self, stemming=True, threshold=5):
