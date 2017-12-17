@@ -149,7 +149,8 @@ class Indexer:
                 term2, freq2, doc_list2 = file2_line.split('#')
                 freq = int(freq1) + int(freq2)
                 doc_list = doc_list1.rstrip() + doc_list2
-                d.append('#'.join([term1, str(freq), doc_list]))
+                sum_tf = sum(map(lambda x: int(x.split(':')[1]), doc_list.split('*')[:-1]))
+                d.append('#'.join([term1, str(freq), sum_tf, doc_list]))
                 file1_line = file1.readline()
                 file1_lines_count += 1
                 if file1_line == '':
@@ -192,8 +193,8 @@ class Indexer:
         '''
         retrieve data from term posting        
         '''
-        term, df, docs = line.split('#')
-        sum_tf = sum(map(lambda x: int(x.split(':')[1]), docs.split('*')[:-1]))
+        term, df, sum_tf, docs = line.split('#')
+        # sum_tf = sum(map(lambda x: int(x.split(':')[1]), docs.split('*')[:-1]))
         term_data = {'row': file_row, 'sum_tf': sum_tf, 'df': df, 'docs': docs}
         return term, term_data
 
