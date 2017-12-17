@@ -78,15 +78,15 @@ class Indexer:
         self.term_to_doc_id = SortedDict()
         self._index += 1
 
-    def merge_postings(self, terms_output_file, docs_output_file):
-        '''
-        merge docs temp posting files to @docs_output_file
-        and merge terms temp posting files to @terms_output_file
-        and create Dictionaries
-        :return: the term_dictionary and docs_dictionary
-        '''
-        self.merge_terms_postings(terms_output_file)
-        return self.TermDictionary, self.DocsDictionary
+    # def merge_postings(self, terms_output_file, docs_output_file):
+    #     '''
+    #     merge docs temp posting files to @docs_output_file
+    #     and merge terms temp posting files to @terms_output_file
+    #     and create Dictionaries
+    #     :return: the term_dictionary and docs_dictionary
+    #     '''
+    #     self.merge_terms_postings(terms_output_file)
+    #     return self.TermDictionary, self.DocsDictionary
 
     def merge_docs_postings(self, docs_output_file):
         '''
@@ -194,7 +194,7 @@ class Indexer:
         '''
         term, df, docs = line.split('#')
         sum_tf = sum(map(lambda x: int(x.split(':')[1]), docs.split('*')[:-1]))
-        term_data = {'row': file_row, 'sum_tf': sum_tf, 'df': df}
+        term_data = {'row': file_row, 'sum_tf': sum_tf, 'df': df, 'docs': docs}
         return term, term_data
 
     def get_term_dictionary(self):
@@ -209,6 +209,7 @@ class Indexer:
             line = f.readline()
             while line:
                 term, term_data = self.get_data_from_term_posting_line(line, file_pos)
+                term_data.pop('docs')
                 self.TermDictionary[term] = term_data
                 file_pos = f.tell()
                 line = f.readline()
@@ -239,16 +240,22 @@ class Indexer:
             term_frequency[term] = self.TermDictionary[term]['df']
 
         most_common_terms = term_frequency.most_common(limit)
+        f = open(self.path + self.terms_output_file, 'r')
         for term, frec in most_common_terms:
             row = self.TermDictionary[term]['row']
-            # term_data = linecache.getline(self.path + self.terms_output_file, row)
-            f = open(self.path + self.terms_output_file, 'r')
             f.seek(row)
-            term_data = f.readline().rstrip()
-            if term_data == '':
-                print("term: " + term + " row: " + str(row))
+            line = f.readline().rstrip()
+            term, term_data = self.get_data_from_term_posting_line(line, row)
+            term_data.pop('sum_tf')
+            term_data.pop('df')
+            cache_limit = 10
+            splited_docs = term_data['docs'].split('*')
+            if len(splited_docs) > cache_limit:
+                term_data['docs'] = '*'.join(splited_docs[:cache_limit]) + '@'
+                # @ means that there more docs in postings
             self.Cache[term] = term_data
             self.TermDictionary[term]['row'] = -1
+        f.close()
         return self.Cache
 
     def export_term_dictionary_to_csv(self, csv_name):

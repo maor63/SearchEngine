@@ -86,18 +86,22 @@ class View(Observer):
     def display_cache(self):
         cache = self.controller.get_cache()
         dictionary_display_window = Toplevel(self.root)
-        term_table = Treeview(dictionary_display_window, columns=('key', 'data'))
-        scroll_bar = Scrollbar(dictionary_display_window, orient=VERTICAL, command=term_table.yview)
-        term_table['yscrollcommand'] = scroll_bar.set
-        term_table.heading('key', text='Key')
-        term_table.heading('data', text='Data')
+        term_table = Treeview(dictionary_display_window, columns=('term', 'file_pos', 'docs'))
+        scroll_bar_y = Scrollbar(dictionary_display_window, orient=VERTICAL, command=term_table.yview)
+        term_table['yscrollcommand'] = scroll_bar_y.set
+        term_table.heading('term', text='Term')
+        term_table.column('term', width=100)
+        term_table.heading('file_pos', text='File_pos')
+        term_table.column('file_pos', width=100)
+        term_table.heading('docs', text='Docs')
+        term_table.column('docs', width=800)
         i = 1
-        for key in cache:
-            term_table.insert('', 'end', text=str(i), values=(key, str(cache[key])))
+        for term in cache:
+            term_table.insert('', 'end', text=str(i), values=(term, str(cache[term]['row']), cache[term]['docs']))
             i += 1
 
         term_table.grid(column=0, row=0, sticky=(N, W, E, S))
-        scroll_bar.grid(column=1, row=0, sticky=(N, S))
+        scroll_bar_y.grid(column=1, row=0, sticky=(N, S))
 
     def docs_browse_location(self):
         dir_path = filedialog.askdirectory()
