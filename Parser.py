@@ -42,7 +42,7 @@ class Parser:
         raw_terms.extend(not_parsed_terms)
         raw_terms = map(lambda x: x.strip(), raw_terms)
         raw_terms = deque(
-            filter(lambda x: len(x) > 0 and x not in self.stop_words and x[0] not in {'.', '$', '/'}, raw_terms))
+            filter(lambda x: len(x) > 1 and x not in self.stop_words and x[0] not in {'.', '$', '/'}, raw_terms))
         return Counter(raw_terms)
 
     def _parse_terms(self, raw_terms):

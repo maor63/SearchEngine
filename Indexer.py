@@ -101,8 +101,8 @@ class Indexer:
         files_names = list(filter(lambda f: f.endswith("terms.t"), os.listdir(self.path)))
         num = 1
         while len(files_names) > 1:
-            file1 = files_names[0]
-            file2 = files_names[1]
+            file1 = files_names[len(files_names) - 2]
+            file2 = files_names[len(files_names) - 1]
             self.merge_files(open(self.path + file1), open(self.path + file2), "merged" + str(num) + "_terms.t")
             os.remove(self.path + file1)
             os.remove(self.path + file2)
