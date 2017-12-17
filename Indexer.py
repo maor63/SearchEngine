@@ -242,9 +242,14 @@ class Indexer:
             term_data.pop('sum_tf')
             term_data.pop('df')
             cache_limit = 10
+
             splited_docs = term_data['docs'].split('*')
             if len(splited_docs) > cache_limit:
-                term_data['docs'] = '*'.join(splited_docs[:cache_limit]) + '@'
+                c = Counter()
+                for doc in splited_docs[:-1]:
+                    doc_id, tf = doc.split(':')
+                    c[doc] = tf
+                term_data['docs'] = '*'.join(map(lambda x: x[0], c.most_common(cache_limit))) + '@'
                 # @ means that there more docs in postings
             self.Cache[term] = term_data
             self.TermDictionary[term]['row'] = -1

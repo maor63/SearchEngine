@@ -90,6 +90,8 @@ class Parser:
                     added_terms.append((term + ' ' + raw_terms[i + 1]).lower())
                     raw_terms[i + 1] = raw_terms[i + 1].lower()
                 raw_terms[i] = term.lower()
+            else:
+                raw_terms[i] = term.lower()
 
     def _parse_dates(self, raw_terms):
         '''

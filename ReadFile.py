@@ -14,6 +14,7 @@ class ReadFile:
         '''
         return the count of the files in a given @path
         '''
+        path = path + "corpus/"
         all_sub_folders = os.listdir(path)
         return sum(map(lambda x: 1, all_sub_folders))
 
@@ -24,6 +25,7 @@ class ReadFile:
         :param threshold: the amount of files returned each iteration, batch limit
         :return: iterator that returns batch of files
         '''
+        path = path + "corpus/"
         all_sub_folders = os.listdir(path)
         docs = []
         i = 1
