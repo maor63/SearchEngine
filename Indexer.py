@@ -58,8 +58,13 @@ class Indexer:
         '''
         for term in self.term_to_doc_id:
             term_row = term + "#" + str(len(self.term_to_doc_id[term])) + "#"
+            sum_tf = 0
+            docs_list = ""
             for doc in self.term_to_doc_id[term]:
-                term_row += "{0}:{1}*".format(doc, self.term_to_doc_id[term][doc])
+                sum_tf += self.term_to_doc_id[term][doc]
+                docs_list += "{0}:{1}*".format(doc, self.term_to_doc_id[term][doc])
+            term_row += str(sum_tf) + "#"
+            term_row += docs_list
             term_row += '\n'
             self.terms_posting.append(term_row)
 
@@ -77,16 +82,6 @@ class Indexer:
         self.terms_posting = []
         self.term_to_doc_id = SortedDict()
         self._index += 1
-
-    # def merge_postings(self, terms_output_file, docs_output_file):
-    #     '''
-    #     merge docs temp posting files to @docs_output_file
-    #     and merge terms temp posting files to @terms_output_file
-    #     and create Dictionaries
-    #     :return: the term_dictionary and docs_dictionary
-    #     '''
-    #     self.merge_terms_postings(terms_output_file)
-    #     return self.TermDictionary, self.DocsDictionary
 
     def merge_docs_postings(self, docs_output_file):
         '''
@@ -131,14 +126,12 @@ class Indexer:
         file2_lines_count += 1
         output_file = open(self.path + output, 'w')
         while file1_line != '':
-            term1, freq1, doc_list1 = file1_line.split('#')
-            term2, freq2, doc_list2 = file2_line.split('#')
+            term1, freq1, sum_tf1, doc_list1 = file1_line.split('#')
+            term2, freq2, sum_tf2, doc_list2 = file2_line.split('#')
             if term1 < term2:
                 d.append(file1_line)
                 file1_line = file1.readline()
                 file1_lines_count += 1
-                if file1_line == '':
-                    break
             elif term2 < term1:
                 d.append(file2_line)
                 file2_line = file2.readline()
@@ -146,15 +139,15 @@ class Indexer:
                 if file2_line == '':
                     break
             else:
-                term2, freq2, doc_list2 = file2_line.split('#')
+                term2, freq2, sum_tf2, doc_list2 = file2_line.split('#')
                 freq = int(freq1) + int(freq2)
                 doc_list = doc_list1.rstrip() + doc_list2
-                sum_tf = sum(map(lambda x: int(x.split(':')[1]), doc_list.split('*')[:-1]))
-                d.append('#'.join([term1, str(freq), sum_tf, doc_list]))
+                sum_tf = int(sum_tf1) + int(sum_tf2)
+                d.append('#'.join([term1, str(freq), str(sum_tf), doc_list]))
                 file1_line = file1.readline()
                 file1_lines_count += 1
-                if file1_line == '':
-                    break
+                # if file1_line == '':
+                #     break
                 file2_line = file2.readline()
                 file2_lines_count += 1
                 if file2_line == '':
@@ -169,12 +162,11 @@ class Indexer:
             d.append(file2_line)
             file2_line = file2.readline()
             file2_lines_count += 1
-            if file2_line == '':
-                break
             if file2_lines_count == 3:
                 output_file.writelines(d)
                 d = []
                 file2_lines_count = 0
+        output_file.writelines(d)
 
         file1.close()
         file2.close()
@@ -270,7 +262,7 @@ class Indexer:
             d = []
             for term in self.TermDictionary:
                 df = self.TermDictionary[term]['df']
-                sum_tf = self.TermDictionary[term]['sum_tf']
+                sum_tf = int(self.TermDictionary[term]['sum_tf'])
                 if sum_tf > 2:
                     line = ','.join([term, str(df), str(sum_tf)]) + '\n'
                     # csv_file.write(line)
@@ -278,5 +270,6 @@ class Indexer:
                 if len(d) == 10000:
                     csv_file.writelines(d)
                     d = []
+            csv_file.writelines(d)
 
 
