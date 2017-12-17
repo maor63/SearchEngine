@@ -39,6 +39,7 @@ class Model(Observable):
         self.notify_observers(progress=40, status='Merging posting files', done=False)
         self.indexer.merge_terms_postings(terms_postings)
         self.indexer.merge_docs_postings(docs_postings)
+        print("Create Dictionaries")
         self.TermDictionary = self.indexer.get_term_dictionary()
         self.DocsDictionary = self.indexer.get_doc_dictionary()
 
@@ -55,7 +56,7 @@ class Model(Observable):
                    'terms_size': os.path.getsize(self.posting_path + terms_postings),
                    'docs_size': os.path.getsize(self.posting_path + docs_postings)}
 
-        # self.indexer.export_term_dictionary_to_csv('statistics.csv')
+        self.indexer.export_term_dictionary_to_csv('statistics.csv')
         self.notify_observers(done=True, summary=summary)
 
     def create_temp_postings(self, stemming, threshold):

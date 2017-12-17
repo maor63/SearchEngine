@@ -262,13 +262,20 @@ class Indexer:
         '''
         export to csv for statistics for the report
         '''
+        print("Export data to csv for statistics")
         fieldnames = ['term', 'df', 'sum_tf']
         with open(self.path + csv_name, 'w') as csv_file:
             csv_file.write(','.join(fieldnames) + '\n')
+            d = []
             for term in self.TermDictionary:
                 df = self.TermDictionary[term]['df']
                 sum_tf = self.TermDictionary[term]['sum_tf']
                 if sum_tf > 2:
-                    csv_file.write(','.join([term, str(df), str(sum_tf)]) + '\n')
+                    line = ','.join([term, str(df), str(sum_tf)]) + '\n'
+                    # csv_file.write(line)
+                    d.append(line)
+                if len(d) == 10000:
+                    csv_file.writelines(d)
+                    d = []
 
 

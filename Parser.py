@@ -54,9 +54,15 @@ class Parser:
         added_terms = deque()
         self._parse_numbers(raw_terms, added_terms)
         self._parse_dates(raw_terms)
+        self._remove_dot_from_terms(raw_terms)
         self._parse_upper_case(raw_terms, added_terms)
         self._parse_dash(raw_terms, added_terms)
         return added_terms
+
+    def _remove_dot_from_terms(self, raw_terms):
+        for i, term in enumerate(raw_terms):
+            if len(term) > 0 and term[len(term) - 1] == '.':
+                raw_terms[i] = term[:-1]
 
     def _parse_dash(self, raw_terms, added_terms):
         '''
