@@ -21,11 +21,19 @@ class View(Observer):
         self.docs_entry['width'] = 50
         self.posting_entry = Entry(self.root)
         self.posting_entry['width'] = 50
+        self.query_entry = Entry(self.root)
+        self.query_entry['width'] = 50
+        self.file_query_entry = Entry(self.root)
+        self.file_query_entry['width'] = 50
         self.to_stem = False
         self.stem_checkbutton = Checkbutton(self.root, text="stemming", command=self.change_stem_state)
+        self.extension_checkbutton = Checkbutton(self.root, text="Extension of query")
+        self.summarize_checkbutton = Checkbutton(self.root, text="Summarize document")
         self.progress_bar = Progressbar(self.root, orient=HORIZONTAL, length=200, mode='determinate')
         self.start_btn = Button(text="Start", fg="blue", command=self.start_indexing)
+        self.run_query = Button(text="Run", fg="blue")
         self.reset_btn = Button(text="Reset process", fg="red", command=self.reset_data)
+        self.reset_result = Button(text="Reset result")
         self.dictionary_btn = Button(text="Show dictionary", fg="red", command=self.display_dictionary)
         self.cache_btn = Button(text="Show cache", fg="red", command=self.display_cache)
         self.save_btn = Button(text="Save dictionary and cache", command=self.save_dictionary_cache)
@@ -54,14 +62,24 @@ class View(Observer):
         docs_btn = Button(self.root, text="browse", command=self.docs_browse_location)
         posting_label = Label(self.root, text="Posting and Dictionary:")
         posting_btn = Button(self.root, text="browse", command=self.posting_browse_location)
+        query_label = Label(self.root, text="query:")
+        file_query_label = Label(self.root, text="file query:")
+        file_run_query = Button(self.root, text="browse")
         doc_label.grid(row=1, sticky=E)
         posting_label.grid(row=2, sticky=E)
+        query_label.grid(row=10, sticky=E)
+        self.run_query.grid(row=14, column=1)
+        file_query_label.grid(row=13, sticky=E)
+        file_run_query.grid(row=13, column=2)
         self.docs_entry.grid(row=1, column=1)
         self.posting_entry.grid(row=2, column=1)
+        self.query_entry.grid(row=10, column=1)
+        self.file_query_entry.grid(row=13, column=1)
         docs_btn.grid(row=1, column=2)
         posting_btn.grid(row=2, column=2)
         self.start_btn.grid(row=5, column=1)
         self.reset_btn.grid(row=6, column=0)
+        self.reset_result.grid(row=15, column=0)
         self.reset_btn['state'] = 'disabled'
         self.cache_btn.grid(row=6, column=1)
         self.dictionary_btn.grid(row=6, column=2)
@@ -70,6 +88,8 @@ class View(Observer):
         self.save_btn.grid(row=7, column=1)
         self.upload_btn.grid(row=7, column=2)
         self.stem_checkbutton.grid(row=5, column=0)
+        self.extension_checkbutton.grid(row=10, column=2)
+        self.summarize_checkbutton.grid(row=11, column=2)
         self.status_bar.grid(row=8, column=0, columnspan=3, sticky=W)
         self.progress_bar.grid(row=9, column=0, columnspan=3, sticky=(W, E))
 
