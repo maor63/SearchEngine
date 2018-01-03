@@ -1,11 +1,13 @@
 import os
-from collections import Counter
+from collections import Counter, defaultdict
 
+import math
 from sortedcollections import SortedDict
 
 
 class Indexer:
     def __init__(self, path=""):
+        # self.doc_weghits = defaultdict()
         self.TermDictionary = {}
         self.DocsDictionary = {}
         self.Cache = {}
@@ -30,6 +32,7 @@ class Indexer:
         if len(terms_dict) == 0:
             return
         most_frequent = str(max(terms_dict, key=terms_dict.get))
+
         doc_row = "{0}#{1}#{2}#{3}\n".format(doc.id, most_frequent, terms_dict[most_frequent], str(len(doc.text)))
         self.docs_posting.append(doc_row)
 
@@ -37,6 +40,7 @@ class Indexer:
             if term not in self.term_to_doc_id:
                 self.term_to_doc_id[term] = {}
             self.term_to_doc_id[term][doc.id] = terms_dict[term]
+
 
     def clean_postings(self):
         '''
@@ -185,6 +189,7 @@ class Indexer:
         term_data = {'row': file_row, 'sum_tf': sum_tf, 'df': df, 'docs': docs}
         return term, term_data
 
+    @property
     def get_term_dictionary(self):
         '''
         create term dictionary, build it only once
@@ -197,10 +202,16 @@ class Indexer:
             line = f.readline()
             while line:
                 term, term_data = self.get_data_from_term_posting_line(line, file_pos)
-                term_data.pop('docs')
+
                 self.TermDictionary[term] = term_data
                 file_pos = f.tell()
                 line = f.readline()
+                term_frec_in_doc = map(lambda x: x.split(':'), term_data['docs'].split('*')[:-1])
+
+                term_data.pop('docs')
+                # for term_tuple in term_frec_in_doc:
+                #     self.doc_weghits[term_tuple[0]] = term_tuple[1] / self.DocsDictionary[term_tuple[0]]['doc_size']
+
 
         return self.TermDictionary
 
@@ -216,6 +227,11 @@ class Indexer:
             doc_id, doc_data = self.get_data_from_doc_posting_line(line, i + 1)
             self.DocsDictionary[doc_id] = doc_data
         return self.DocsDictionary
+
+    # def cala_tfidf(self, term, doc):
+    #     tf = term_frec_in_doc / len(doc.text)
+    #     df = term_frec_in_corpus
+    #     idf = math.log(len(self.DocsDictionary) / df, 2)
 
     def create_cache(self, limit):
         '''
@@ -236,7 +252,7 @@ class Indexer:
             term, term_data = self.get_data_from_term_posting_line(line, row)
             term_data.pop('sum_tf')
             term_data.pop('df')
-            cache_limit = 10
+            cache_limit = 50
 
             splited_docs = term_data['docs'].split('*')
             if len(splited_docs) > cache_limit:

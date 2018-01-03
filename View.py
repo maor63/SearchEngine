@@ -97,7 +97,7 @@ class View(Observer):
         '''
         display the dictionary
         '''
-        term_dict = self.controller.get_dictionary()
+        term_dict = self.controller.get_dictionary().term_dict
         dictionary_display_window = Toplevel(self.root)
         term_table = Treeview(dictionary_display_window, columns=('term', 'sum_tf'))
         scroll_bar = Scrollbar(dictionary_display_window, orient=VERTICAL, command=term_table.yview)
@@ -170,9 +170,13 @@ class View(Observer):
         '''
         change the display to normal mode
         '''
-        self.status_bar_text.set("Status: " + kwargs['status'])
-        self.progress_bar.step(kwargs['progress'])
-        if kwargs['done']:
+        if 'status' in kwargs and 'progress' in kwargs:
+            self.status_bar_text.set("Status: " + kwargs['status'])
+            self.progress_bar.step(kwargs['progress'])
+        if "fail" in kwargs:
+            self.start_btn['state'] = 'normal'
+            self.stem_checkbutton['state'] = 'normal'
+        elif kwargs['done']:
             self.progress_bar['value'] = 100
             self.start_btn['state'] = 'normal'
             self.reset_btn['state'] = 'normal'
@@ -236,6 +240,8 @@ class View(Observer):
             return
         pickle.dump(self.controller.get_cache(), file_cache)
         file_cache.close()
+
+
 
     def upload_dictionary_cache(self):
         '''

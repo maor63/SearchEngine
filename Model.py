@@ -36,35 +36,39 @@ class Model(Observable):
         :param stemming: true to activate stemming 
         :param threshold: limit docs batch
         '''
-        start = time.time()
-        self.create_temp_postings(stemming, threshold)
-        terms_postings = "merged_terms_postings"
-        docs_postings = "merged_docs"
-        if stemming:
-            terms_postings = "stemed_" + terms_postings
-        end = time.time()
-        print("Read file time after indexing: {0}".format(str((end - start) / 60) + " min"))
-        self.notify_observers(progress=40, status='Merging posting files', done=False)
-        self.indexer.merge_terms_postings(terms_postings)
-        self.indexer.merge_docs_postings(docs_postings)
-        print("Create Dictionaries")
+        try:
 
-        self.TermDictionary = self.indexer.get_term_dictionary()
-        self.DocsDictionary = self.indexer.get_doc_dictionary()
+            start = time.time()
+            self.create_temp_postings(stemming, threshold)
+            terms_postings = "merged_terms_postings"
+            docs_postings = "merged_docs"
+            if stemming:
+                terms_postings = "stemed_" + terms_postings
+            end = time.time()
+            print("Read file time after indexing: {0}".format(str((end - start) / 60) + " min"))
+            self.notify_observers(progress=40, status='Merging posting files', done=False)
+            self.indexer.merge_terms_postings(terms_postings)
+            self.indexer.merge_docs_postings(docs_postings)
+            print("Create Dictionaries")
 
-        end = time.time()
-        print("Read file time after merge: {0}".format(str((end - start) / 60) + " min"))
-        self.notify_observers(progress=40, status='Creating Cache', done=False)
-        self.Cache = self.indexer.create_cache(10000)
+            self.TermDictionary = self.indexer.get_term_dictionary
+            self.DocsDictionary = self.indexer.get_doc_dictionary()
 
-        end1 = time.time()
-        print("Read file time after cache: {0}".format(str((end1 - start) / 60) + " min"))
-        total_time = end - start
-        summary = {'term_indexed': len(self.TermDictionary), 'doc_indexed': len(self.DocsDictionary),
-                   'total_time': round(total_time), 'cache_size': sys.getsizeof(self.Cache),
-                   'terms_size': os.path.getsize(self.posting_path + terms_postings),
-                   'docs_size': os.path.getsize(self.posting_path + docs_postings)}
-        self.notify_observers(done=True, summary=summary)
+            end = time.time()
+            print("Read file time after merge: {0}".format(str((end - start) / 60) + " min"))
+            self.notify_observers(progress=40, status='Creating Cache', done=False)
+            self.Cache = self.indexer.create_cache(10000)
+
+            end1 = time.time()
+            print("Read file time after cache: {0}".format(str((end1 - start) / 60) + " min"))
+            total_time = end - start
+            summary = {'term_indexed': len(self.TermDictionary), 'doc_indexed': len(self.DocsDictionary),
+                       'total_time': round(total_time), 'cache_size': sys.getsizeof(self.Cache),
+                       'terms_size': os.path.getsize(self.posting_path + terms_postings),
+                       'docs_size': os.path.getsize(self.posting_path + docs_postings)}
+            self.notify_observers(done=True, summary=summary)
+        except Exception:
+            self.notify_observers(fail=True)
 
     def create_temp_postings(self, stemming, threshold):
         '''
@@ -94,6 +98,9 @@ class Model(Observable):
 
     def get_term_dictionary(self):
         return self.TermDictionary
+
+    def get_doc_dictionary(self):
+        return self.DocsDictionary
 
     def get_cache(self):
         return self.Cache

@@ -5,6 +5,12 @@ from Observable import Observable
 from Observer import Observer
 
 
+class Dictionary:
+    def __init__(self, term_dict, docs_dict):
+        self.term_dict = term_dict
+        self.docs_dict = docs_dict
+
+
 class Controller(Observer, Observable):
     def __init__(self):
         Observable.__init__(self)
@@ -40,7 +46,9 @@ class Controller(Observer, Observable):
         '''
         :return: the Dictionary 
         '''
-        return self.term_dict
+        d = Dictionary(self.term_dict, self.docs_dict)
+        # return self.term_dict
+        return d
 
     def get_cache(self):
         '''
@@ -58,17 +66,19 @@ class Controller(Observer, Observable):
         '''
         set the dictionary
         '''
-        self.term_dict = dictionary
+        self.docs_dict = dictionary.docs_dict
+        self.term_dict = dictionary.term_dict
 
     def update(self, **kwargs):
         '''
         get updates from the Model 
         '''
-        if kwargs['done']:
+        if "fail" in kwargs:
+            self.notify_observers(**kwargs)
+        elif kwargs['done']:
             self.term_dict = self.module.get_term_dictionary()
+            self.docs_dict = self.module.get_doc_dictionary()
             self.cache = self.module.get_cache()
             self.notify_observers(status="Done!!!", done=True, progress=0, summary=kwargs['summary'])
         else:
             self.notify_observers(**kwargs)
-
-
