@@ -31,7 +31,7 @@ class View(Observer):
         self.summarize_checkbutton = Checkbutton(self.root, text="Summarize document")
         self.progress_bar = Progressbar(self.root, orient=HORIZONTAL, length=200, mode='determinate')
         self.start_btn = Button(text="Start", fg="blue", command=self.start_indexing)
-        self.run_query = Button(text="Run", fg="blue")
+        self.run_query = Button(text="Run", fg="blue", command=self.search_query)
         self.reset_btn = Button(text="Reset process", fg="red", command=self.reset_data)
         self.reset_result = Button(text="Reset result")
         self.dictionary_btn = Button(text="Show dictionary", fg="red", command=self.display_dictionary)
@@ -159,6 +159,9 @@ class View(Observer):
         dir_path = filedialog.askdirectory()
         self.file_query_entry.delete(0, len(self.file_query_entry.get()))
         self.file_query_entry.insert(0, dir_path)
+
+    def search_query(self):
+        self.controller.search_query(self.query_entry.get())
 
     def start_indexing(self):
         '''
