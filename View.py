@@ -64,7 +64,7 @@ class View(Observer):
         posting_btn = Button(self.root, text="browse", command=self.posting_browse_location)
         query_label = Label(self.root, text="query:")
         file_query_label = Label(self.root, text="file query:")
-        file_run_query = Button(self.root, text="browse")
+        file_run_query = Button(self.root, text="browse", command=self.query_file_browse_location)
         doc_label.grid(row=1, sticky=E)
         posting_label.grid(row=2, sticky=E)
         query_label.grid(row=10, sticky=E)
@@ -150,6 +150,15 @@ class View(Observer):
         dir_path = filedialog.askdirectory()
         self.posting_entry.delete(0, len(self.posting_entry.get()))
         self.posting_entry.insert(0, dir_path)
+
+
+    def query_file_browse_location(self):
+        '''
+        ask the posting directory
+        '''
+        dir_path = filedialog.askdirectory()
+        self.file_query_entry.delete(0, len(self.file_query_entry.get()))
+        self.file_query_entry.insert(0, dir_path)
 
     def start_indexing(self):
         '''

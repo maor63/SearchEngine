@@ -232,6 +232,8 @@ class Indexer:
     #     tf = term_frec_in_doc / len(doc.text)
     #     df = term_frec_in_corpus
     #     idf = math.log(len(self.DocsDictionary) / df, 2)
+    #     return tf*idf
+
 
     def create_cache(self, limit):
         '''

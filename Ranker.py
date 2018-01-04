@@ -10,4 +10,4 @@ class Ranker:
 
 
     def calculate_cossim(self, query, document):
-        math.
+        math.pow()
