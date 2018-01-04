@@ -6,6 +6,7 @@ from Searcher import Searcher
 
 
 class ParserTest(unittest.TestCase):
+
     def test_search_query(self):
         c = Controller()
         dictionary = open("./test_data/test_dict.dic", "br")

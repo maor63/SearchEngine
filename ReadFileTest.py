@@ -46,12 +46,24 @@ Gary Traxler, North Hollywood
 '''
         self.assertEqual(text, docs[7].text)
 
-
     def test_doc_with_missing_text_tag(self):
         docs = self.read_file.read_docs_from_FB_file("./test_data/FB396070/FB396070")
         print(len(docs))
         self.assertEqual(176, len(docs))
 
+    def test_read_query_file(self):
+        queries = self.read_file.read_query_file("./test_data/queries.txt")
+        expected = {
+            'Falkland petroleum exploration': 351, 'British Chunnel impact': 352, 'blood-alcohol fatalities': 358,
+            'mutual fund predictors': 359, 'human smuggling': 362, 'piracy': 367, 'encryption equipment export': 373,
+            'Nobel prize winners': 374, 'cigar smoking': 377, 'obesity medical treatment': 380,
+            'space station moon': 384, 'hybrid fuel cars': 385, 'radioactive waste': 387,
+            'organic soil enhancement': 388, 'orphan drugs': 390}
+        self.assertDictEqual(expected, queries)
+
+    # def test_write_query_results(self):
+    #     query_results = {"A": 3, "B": 5}
+    #     self.read_file.save_query_results(query_results, )
 
 
 if __name__ == '__main__':

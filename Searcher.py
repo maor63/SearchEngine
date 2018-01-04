@@ -12,6 +12,6 @@ class Searcher:
 
     def search_query(self, query, to_stem=False):
         terms = self.parser.parse(query)
-        if(to_stem):
+        if to_stem:
             terms = self.stemmer.stem(terms)
         return self.ranker.rank_query(terms)

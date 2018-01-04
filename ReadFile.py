@@ -128,3 +128,24 @@ class ReadFile:
         '''
         doc.text = self.text_tags.sub('', doc.text)
         return doc
+
+    def read_query_file(self, query_file):
+        f = open(query_file, 'r')
+        text = f.read()
+        queries = {}
+        raw_queries = text.split('</top>')[:-1]
+        for raw_query in raw_queries:
+            num = int(self.getDataFromTag(raw_query, "<num> Number:").strip())
+            query = self.getDataFromTag(raw_query, "<title>").strip()
+            queries[query] = num
+
+        return queries
+
+    def getDataFromTag(self, raw_query, tag):
+        s = raw_query.find(tag) + len(tag)
+        e = raw_query.find("\n", s)
+        return raw_query[s: e]
+
+    def save_query_results(self, query_results, path):
+        pass
+
