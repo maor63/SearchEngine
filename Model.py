@@ -51,7 +51,7 @@ class Model(Observable):
             self.indexer.merge_docs_postings(docs_postings)
             print("Create Dictionaries")
 
-            self.TermDictionary = self.indexer.get_term_dictionary
+            self.TermDictionary = self.indexer.get_term_dictionary()
             self.DocsDictionary = self.indexer.get_doc_dictionary()
 
             end = time.time()

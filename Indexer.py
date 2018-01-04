@@ -9,7 +9,7 @@ class Indexer:
     def __init__(self, path=""):
         # self.doc_weghits = defaultdict()
         self.TermDictionary = {}
-        self.DocsDictionary = {}
+        self.DocsDictionary = defaultdict()
         self.Cache = {}
         self.terms_output_file = ''
         self.docs_output_file = "merged_docs.p"
@@ -177,7 +177,7 @@ class Indexer:
         '''
         doc_id, most_frequent_term, term_count, doc_size = line.split('#')
         doc_data = {'row': file_row, 'most_ferc_term': most_frequent_term, 'term_count': term_count,
-                    'doc_size': doc_size}
+                    'doc_size': int(doc_size)}
         return doc_id, doc_data
 
     def get_data_from_term_posting_line(self, line, file_row):
@@ -186,15 +186,17 @@ class Indexer:
         '''
         term, df, sum_tf, docs = line.split('#')
         # sum_tf = sum(map(lambda x: int(x.split(':')[1]), docs.split('*')[:-1]))
-        term_data = {'row': file_row, 'sum_tf': sum_tf, 'df': df, 'docs': docs}
+        term_data = {'row': file_row, 'sum_tf': sum_tf, 'df': int(df), 'docs': docs}
         return term, term_data
 
-    @property
+
     def get_term_dictionary(self):
         '''
         create term dictionary, build it only once
         :return: the term dict
         '''
+        doc_dict = self.get_doc_dictionary()
+        doc_weight = Counter()
         if self.TermDictionary != {}:
             return self.TermDictionary
         with open(self.path + self.terms_output_file, 'r+') as f:
@@ -202,16 +204,21 @@ class Indexer:
             line = f.readline()
             while line:
                 term, term_data = self.get_data_from_term_posting_line(line, file_pos)
-
-                self.TermDictionary[term] = term_data
                 file_pos = f.tell()
                 line = f.readline()
                 term_frec_in_doc = map(lambda x: x.split(':'), term_data['docs'].split('*')[:-1])
-
+                N = len(doc_dict)
+                df = term_data['df']
+                for t in term_frec_in_doc:
+                    fi = int(t[1])
+                    D_len = doc_dict[t[0]]['doc_size']
+                    tfidf = (fi / D_len) * math.log(N / df, 2)
+                    doc_weight[t[0]] += tfidf
                 term_data.pop('docs')
-                # for term_tuple in term_frec_in_doc:
-                #     self.doc_weghits[term_tuple[0]] = term_tuple[1] / self.DocsDictionary[term_tuple[0]]['doc_size']
+                self.TermDictionary[term] = term_data
 
+        for doc in self.DocsDictionary:
+            self.DocsDictionary[doc]['W'] = doc_weight[doc]
 
         return self.TermDictionary
 
@@ -220,6 +227,7 @@ class Indexer:
         create doc dictionary, build it only once
         :return: the doc dict
         '''
+
         if self.DocsDictionary != {}:
             return self.DocsDictionary
         f = open(self.path + self.docs_output_file, 'r')
@@ -227,13 +235,6 @@ class Indexer:
             doc_id, doc_data = self.get_data_from_doc_posting_line(line, i + 1)
             self.DocsDictionary[doc_id] = doc_data
         return self.DocsDictionary
-
-    # def cala_tfidf(self, term, doc):
-    #     tf = term_frec_in_doc / len(doc.text)
-    #     df = term_frec_in_corpus
-    #     idf = math.log(len(self.DocsDictionary) / df, 2)
-    #     return tf*idf
-
 
     def create_cache(self, limit):
         '''
