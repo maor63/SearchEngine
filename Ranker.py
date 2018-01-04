@@ -1,10 +1,53 @@
 import math
+from sortedcollections import SortedList
+from collections import Counter
+
+from Indexer import Indexer
+
 
 class Ranker:
-    def __init__(self):
+    def __init__(self, term_dict, doc_dict, cache, term_posting_file):
+        self.term_dict = term_dict
+        self.doc_dict = doc_dict
+        self.cache = cache
+        self.N = len(doc_dict)
+        self.term_posting_file = term_posting_file
+        self.indexer = Indexer()
 
-    def rank_result(self):
+    def rank_query(self, query):
+        docs = []
+        most_common_docs = Counter()
+        f = open(self.term_posting_file, 'r')
+        for word in query:
+            if word in self.cache:
+                docs.extend(self.cache[word]['docs'].split('*')[:-1])
+            else:
+                row = self.term_dict[word]['row']
+                term, term_data = self.indexer.getTermAndTermData(f, row)
+                docs.extend(term_data['docs'].split('*')[:-1])
+        f.close()
+        for d in docs:
+            doc_id, frec = d.split(':')
+            most_common_docs[doc_id] = self.calculate_cossim(query, d)
+        result = map(lambda x: x[0], most_common_docs.most_common(50))
+        return result
 
-    def calculate_tfidf(self, query, document):
+    def calculate_tfidf(self, word, document):
+        doc_id, frec = document.split(':')
+        frec = int(frec)
+        D = self.doc_dict[doc_id]['doc_size']
+        tf = frec / D
+        df = self.term_dict[word]['df']
+        idf = math.log2(self.N / df)
+        return tf * idf
 
     def calculate_cossim(self, query, document):
+        doc_id, frec = document.split(':')
+        innerproduct = 0
+        for word in query:
+            word_w = self.calculate_tfidf(word, document)
+            innerproduct += word_w
+        doc_w = self.doc_dict[doc_id]['W']
+        denominator = math.sqrt(len(query) * doc_w)
+
+        return innerproduct / denominator

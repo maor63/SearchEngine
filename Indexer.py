@@ -250,9 +250,7 @@ class Indexer:
         f = open(self.path + self.terms_output_file, 'r')
         for term, frec in most_common_terms:
             row = self.TermDictionary[term]['row']
-            f.seek(row)
-            line = f.readline().rstrip()
-            term, term_data = self.get_data_from_term_posting_line(line, row)
+            term, term_data = self.getTermAndTermData(f, row)
             term_data.pop('sum_tf')
             term_data.pop('df')
             cache_limit = 50
@@ -269,6 +267,12 @@ class Indexer:
             self.TermDictionary[term]['row'] = -1
         f.close()
         return self.Cache
+
+    def getTermAndTermData(self, f, row):
+        f.seek(row)
+        line = f.readline().rstrip()
+        term, term_data = self.get_data_from_term_posting_line(line, row)
+        return term, term_data
 
 
 
