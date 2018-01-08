@@ -21,7 +21,7 @@ class Ranker:
         for word in query:
             if word in self.cache:
                 docs.extend(self.cache[word]['docs'].split('*')[:-1])
-            else:
+            elif word in self.term_dict:
                 row = self.term_dict[word]['row']
                 term, term_data = self.indexer.getTermAndTermData(f, row)
                 docs.extend(term_data['docs'].split('*')[:-1])

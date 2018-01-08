@@ -3,6 +3,7 @@ from threading import Thread
 from Model import Model
 from Observable import Observable
 from Observer import Observer
+from Searcher import Searcher
 
 
 class Dictionary:
@@ -18,6 +19,7 @@ class Controller(Observer, Observable):
         self.term_dict = {}
         self.docs_dict = {}
         self.cache = {}
+        self.searcher = Searcher("./test_data/stop_words.txt", self.get_dictionary().term_dict, self.get_dictionary().docs_dict, self.get_cache(), "./test_data/merged_terms_postings")
 
     def start_indexing(self, doc_path, posting_path, stem):
         '''
@@ -82,3 +84,7 @@ class Controller(Observer, Observable):
             self.notify_observers(status="Done!!!", done=True, progress=0, summary=kwargs['summary'])
         else:
             self.notify_observers(**kwargs)
+
+    def search_query(self, query):
+        result = self.searcher.search_query(query)
+        print(list(result))
