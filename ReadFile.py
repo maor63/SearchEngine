@@ -33,17 +33,21 @@ class ReadFile:
             msg = "Read file {0}/{1} : {2}".format(str(i), len(all_sub_folders), curr_folder)
             print(msg)
             i += 1
-            if curr_folder.startswith("LA"):
-                d = self.read_docs_from_LA_file(path + curr_folder + "/" + curr_folder)
-            elif curr_folder.startswith("FB"):
-                d = self.read_docs_from_FB_file(path + curr_folder + "/" + curr_folder)
-            else:
-                d = self.read_docs_from_FT_file(path + curr_folder + "/" + curr_folder)
+            d = self.read_file_from_path(curr_folder, path)
             docs.extend(d)
             if i % threshold == 0:
                 yield docs
                 docs = []
         yield docs
+
+    def read_file_from_path(self, curr_folder, path):
+        if curr_folder.startswith("LA"):
+            d = self.read_docs_from_LA_file(path + curr_folder + "/" + curr_folder)
+        elif curr_folder.startswith("FB"):
+            d = self.read_docs_from_FB_file(path + curr_folder + "/" + curr_folder)
+        else:
+            d = self.read_docs_from_FT_file(path + curr_folder + "/" + curr_folder)
+        return d
 
     def read_docs_from_FB_file(self, file_path):
         '''

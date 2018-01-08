@@ -1,0 +1,3 @@
+class Summerizer():
+
+    pass

@@ -3,7 +3,9 @@ from threading import Thread
 from Model import Model
 from Observable import Observable
 from Observer import Observer
+from ReadFile import ReadFile
 from Searcher import Searcher
+from Summerizer import Summerizer
 
 
 class Dictionary:
@@ -102,3 +104,9 @@ class Controller(Observer, Observable):
         f = open("results.txt", 'w')
         for doc_id in self.query_results:
             f.write("351   0  FR940104-0-00001  1   42.38   mt")
+
+
+    def summarize_document(self, doc_id, doc_path):
+        s = Summerizer()
+        r = ReadFile()
+        docs = r.read_file_from_path(doc_path)
