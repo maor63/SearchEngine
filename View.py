@@ -135,20 +135,20 @@ class View(Observer):
         term_table.grid(column=0, row=0, sticky=(N, W, E, S))
         scroll_bar_y.grid(column=1, row=0, sticky=(N, S))
 
-    def display_results(self):
+    def display_results(self, results):
         '''
         display the results of query
         '''
-        term_dict = self.controller.get_results()
+        term_dict = results
         results_display_window = Toplevel(self.root)
-        term_table = Treeview(results_display_window, columns=('Document', ''))
+        term_table = Treeview(results_display_window, columns=('Document', 'query_num'))
         scroll_bar = Scrollbar(results_display_window, orient=VERTICAL, command=term_table.yview)
         term_table['yscrollcommand'] = scroll_bar.set
         term_table.heading('Document', text='Document')
-        term_table.heading('', text='')
+        term_table.heading('query_num', text='query_num')
         i = 1
         for term in term_dict:
-            term_table.insert('', 'end', text=str(i), values=(term, str(term_dict[term]['sum_tf'])))
+            term_table.insert('', 'end', text=str(i), values=(term, term_dict[term]))
             i += 1
 
         term_table.grid(column=0, row=0, sticky=(N, W, E, S))
@@ -181,8 +181,8 @@ class View(Observer):
         self.file_query_entry.insert(0, dir_path)
 
     def search_query(self):
-        self.controller.search_query(self.query_entry.get())
-        self.display_results()
+        results = self.controller.search_query(self.query_entry.get())
+        self.display_results(results)
 
     def start_indexing(self):
         '''

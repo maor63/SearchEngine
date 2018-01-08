@@ -19,8 +19,8 @@ class Controller(Observer, Observable):
         self.term_dict = {}
         self.docs_dict = {}
         self.cache = {}
-        self.result = {}
-        self.searcher = Searcher("./test_data/stop_words.txt", self.get_dictionary().term_dict, self.get_dictionary().docs_dict, self.get_cache(), "./test_data/merged_terms_postings")
+        self.query_results = []
+
 
     def start_indexing(self, doc_path, posting_path, stem):
         '''
@@ -63,7 +63,7 @@ class Controller(Observer, Observable):
         '''
         :return: the Cache
         '''
-        return self.result
+        return self.query_results
 
     def set_cache(self, cache):
         '''
@@ -92,6 +92,13 @@ class Controller(Observer, Observable):
         else:
             self.notify_observers(**kwargs)
 
-    def search_query(self, query):
-        self.result = self.searcher.search_query(query)
-        print(list(self.result))
+    def search_query(self, query, query_num=0):
+        self.searcher = Searcher("./test_data/stop_words.txt", self.get_dictionary().term_dict,
+                                 self.get_dictionary().docs_dict, self.get_cache(), "./test_data/merged_terms_postings")
+        # return {self.searcher.search_query(query): query_num}
+        return {doc_id: query_num for doc_id in self.searcher.search_query(query)}
+
+    def save_query_results(self):
+        f = open("results.txt", 'w')
+        for doc_id in self.query_results:
+            f.write("351   0  FR940104-0-00001  1   42.38   mt")

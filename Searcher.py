@@ -14,4 +14,4 @@ class Searcher:
         terms = self.parser.parse(query)
         if to_stem:
             terms = self.stemmer.stem(terms)
-        return self.ranker.rank_query(terms)
+        return list(self.ranker.rank_query(terms))
