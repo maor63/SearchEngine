@@ -135,6 +135,26 @@ class View(Observer):
         term_table.grid(column=0, row=0, sticky=(N, W, E, S))
         scroll_bar_y.grid(column=1, row=0, sticky=(N, S))
 
+    def display_results(self):
+        '''
+        display the results of query
+        '''
+        term_dict = self.controller.get_results()
+        results_display_window = Toplevel(self.root)
+        term_table = Treeview(results_display_window, columns=('Document', ''))
+        scroll_bar = Scrollbar(results_display_window, orient=VERTICAL, command=term_table.yview)
+        term_table['yscrollcommand'] = scroll_bar.set
+        term_table.heading('Document', text='Document')
+        term_table.heading('', text='')
+        i = 1
+        for term in term_dict:
+            term_table.insert('', 'end', text=str(i), values=(term, str(term_dict[term]['sum_tf'])))
+            i += 1
+
+        term_table.grid(column=0, row=0, sticky=(N, W, E, S))
+        scroll_bar.grid(column=1, row=0, sticky=(N, S))
+
+
     def docs_browse_location(self):
         '''
         ask the carpus and stopwords directory path
@@ -162,6 +182,7 @@ class View(Observer):
 
     def search_query(self):
         self.controller.search_query(self.query_entry.get())
+        self.display_results()
 
     def start_indexing(self):
         '''

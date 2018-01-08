@@ -19,6 +19,7 @@ class Controller(Observer, Observable):
         self.term_dict = {}
         self.docs_dict = {}
         self.cache = {}
+        self.result = {}
         self.searcher = Searcher("./test_data/stop_words.txt", self.get_dictionary().term_dict, self.get_dictionary().docs_dict, self.get_cache(), "./test_data/merged_terms_postings")
 
     def start_indexing(self, doc_path, posting_path, stem):
@@ -58,6 +59,12 @@ class Controller(Observer, Observable):
         '''
         return self.cache
 
+    def get_results(self):
+        '''
+        :return: the Cache
+        '''
+        return self.result
+
     def set_cache(self, cache):
         '''
         set the cache
@@ -86,5 +93,5 @@ class Controller(Observer, Observable):
             self.notify_observers(**kwargs)
 
     def search_query(self, query):
-        result = self.searcher.search_query(query)
-        print(list(result))
+        self.result = self.searcher.search_query(query)
+        print(list(self.result))
