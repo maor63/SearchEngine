@@ -23,8 +23,8 @@ class SummerizerTest(unittest.TestCase):
         r = ReadFile()
         docs = r.read_file_from_path("./test_data/corpus/", file_name)
         doc = list(filter(lambda d: d.id == doc_id, docs))[0]
-        res = summerizer.get_importent_sentences(doc, 10)
-        print(res)
+        res = summerizer.get_importent_sentences(doc, 5)
+        pass
 
 
 if __name__ == '__main__':
