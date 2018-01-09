@@ -139,22 +139,26 @@ class View(Observer):
         '''
         display the results of query
         '''
-        term_dict = results
+        query_id_to_docs = results
         results_display_window = Toplevel(self.root)
         totaltime = Label(results_display_window, text="query time {} seconds".format("%.2f" % query_time))
         totaltime.grid(row=1, column=0)
         docs_btn1 = Button(results_display_window, text="save", command=self.save_result)
         docs_btn1.grid(row=2, column=0)
-        term_table = Treeview(results_display_window, columns=('Document', 'query_num'))
+        term_table = Treeview(results_display_window, columns=('query_num', 'Document'))
         scroll_bar = Scrollbar(results_display_window, orient=VERTICAL, command=term_table.yview)
         term_table['yscrollcommand'] = scroll_bar.set
-        term_table.heading('Document', text='Document')
         term_table.heading('query_num', text='query_num')
+        term_table.heading('Document', text='Document')
         i = 1
-        term_table.insert('', 'end', text="{} documents".format(len(term_dict)), values=("", ""))
-        for term in term_dict:
-            term_table.insert('', 'end', text=str(i), values=(term, term_dict[term]))
-            i += 1
+        total_docs = sum(map(lambda x: len(query_id_to_docs[x]), query_id_to_docs))
+        term_table.insert('', 'end', text="total documents: {}".format(total_docs), values=("", ""))
+        for query_id in query_id_to_docs:
+            query_docs_count = len(query_id_to_docs[query_id])
+            term_table.insert('', 'end', text="query {0} documents: {1}".format(query_id, query_docs_count), values=("", ""))
+            for doc_id in query_id_to_docs[query_id]:
+                term_table.insert('', 'end', text=str(i), values=(query_id, doc_id))
+                i += 1
 
         term_table.grid(column=0, row=0, sticky=(N, W, E, S))
         scroll_bar.grid(column=1, row=0, sticky=(N, S))

@@ -25,7 +25,6 @@ class Controller(Observer, Observable):
         self.cache = {}
         self.query_results = []
 
-
     def start_indexing(self, doc_path, posting_path, stem):
         '''
         start the indexing process for creating Dictionary and Postings files 
@@ -100,7 +99,7 @@ class Controller(Observer, Observable):
         start = time.time()
         self.searcher = Searcher("./test_data/stop_words.txt", self.get_dictionary().term_dict,
                                  self.get_dictionary().docs_dict, self.get_cache(), "./test_data/merged_terms_postings")
-        self.query_results = {doc_id: query_num for doc_id in self.searcher.search_query(query)}
+        self.query_results = {query_num: self.searcher.search_query(query)}
         totaltime = time.time() - start
         return self.query_results, totaltime
 
@@ -113,18 +112,15 @@ class Controller(Observer, Observable):
         queries = r.read_query_file(query_file)
         query_num = 0
         for query in queries:
-            query_num += 1
-            self.query_results = {doc_id: query_num for doc_id in self.searcher.search_query(query)}
-            results[query_num] = self.query_results
+            query_num = queries[query]
+            results.update({query_num: self.searcher.search_query(query)})
         totaltime = time.time() - start
         return results, totaltime
-
 
     # def save_query_results(self):
     #     f = open("results.txt", 'w')
     #     for doc_id in self.query_results:
     #         f.write("351   0  FR940104-0-00001  1   42.38   mt")
-
 
     # def summarize_document(self, doc_id, doc_path):
     #     s = Summerizer()

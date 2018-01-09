@@ -18,6 +18,7 @@ class Ranker:
         docs = []
         most_common_docs = Counter()
         f = open(self.term_posting_file, 'r')
+        word_to_delete = []
         for word in query:
             if word in self.cache:
                 docs.extend(self.cache[word]['docs'].split('*')[:-1])
@@ -25,6 +26,8 @@ class Ranker:
                 row = self.term_dict[word]['row']
                 term, term_data = self.indexer.getTermAndTermData(f, row)
                 docs.extend(term_data['docs'].split('*')[:-1])
+
+        query = list(filter(lambda w: w in self.term_dict, query))
         f.close()
         for d in docs:
             doc_id, frec = d.split(':')
