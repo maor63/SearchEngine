@@ -181,9 +181,9 @@ class View(Observer):
         '''
         ask the posting directory
         '''
-        dir_path = filedialog.askdirectory()
-        self.file_query_entry.delete(0, len(self.file_query_entry.get()))
-        self.file_query_entry.insert(0, dir_path)
+        dir_path = askopenfilename(filetypes=[("Text files", "*.txt")])
+        # self.file_query_entry.delete(0, len(self.file_query_entry.get()))
+        # self.file_query_entry.insert(0, dir_path)
         if dir_path is "":
             return
         results, time = self.controller.search_file_query(dir_path)

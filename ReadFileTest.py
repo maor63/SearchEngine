@@ -30,21 +30,21 @@ city.'''
                "a tanker at Middleton Moor, near Edinburgh."
         self.assertEqual(text, docs[3].text)
 
-    def test_read_LA_file(self):
-        docs = self.read_file.read_docs_from_LA_file("./test_data/LA010790/LA010790", "LA010790")
-        self.assertEqual(226, len(docs))
-        self.assertEqual("LA010790-0008", docs[7].id)
-        text = '''"What Are We Doing to Our Children?," KTLA's program on the foster care and 
-juvenile justice system, presented an honest, realistic and disturbing 
-portrayal of what happens when parents fail and children are left at the mercy 
-of an overwhelmed and ineffective governmental agency. What is more alarming is 
-that, with the increase in drug use, domestic violence, infant abandonments, 
-etc., we are seeing more and more children swept into a whirlpool of 
-instability and danger. 
-
-Gary Traxler, North Hollywood 
-'''
-        self.assertEqual(text, docs[7].text)
+#     def test_read_LA_file(self):
+#         docs = self.read_file.read_docs_from_LA_file("./test_data/LA010790/LA010790", "LA010790")
+#         self.assertEqual(226, len(docs))
+#         self.assertEqual("LA010790-0008", docs[7].id)
+#         text = '''"What Are We Doing to Our Children?," KTLA's program on the foster care and
+# juvenile justice system, presented an honest, realistic and disturbing
+# portrayal of what happens when parents fail and children are left at the mercy
+# of an overwhelmed and ineffective governmental agency. What is more alarming is
+# that, with the increase in drug use, domestic violence, infant abandonments,
+# etc., we are seeing more and more children swept into a whirlpool of
+# instability and danger.
+#
+# Gary Traxler, North Hollywood
+# '''
+#         self.assertEqual(text, docs[7].text)
 
     def test_doc_with_missing_text_tag(self):
         docs = self.read_file.read_docs_from_FB_file("./test_data/FB396070/FB396070", "FB396070")
