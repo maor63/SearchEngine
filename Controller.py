@@ -1,5 +1,7 @@
 from threading import Thread
 
+import time
+
 from Model import Model
 from Observable import Observable
 from Observer import Observer
@@ -95,15 +97,33 @@ class Controller(Observer, Observable):
             self.notify_observers(**kwargs)
 
     def search_query(self, query, query_num=0):
+        start = time.time()
         self.searcher = Searcher("./test_data/stop_words.txt", self.get_dictionary().term_dict,
                                  self.get_dictionary().docs_dict, self.get_cache(), "./test_data/merged_terms_postings")
-        # return {self.searcher.search_query(query): query_num}
-        return {doc_id: query_num for doc_id in self.searcher.search_query(query)}
+        self.query_results = {doc_id: query_num for doc_id in self.searcher.search_query(query)}
+        totaltime = time.time() - start
+        return self.query_results, totaltime
 
-    def save_query_results(self):
-        f = open("results.txt", 'w')
-        for doc_id in self.query_results:
-            f.write("351   0  FR940104-0-00001  1   42.38   mt")
+    def search_file_query(self, query_file):
+        results = {}
+        start = time.time()
+        self.searcher = Searcher("./test_data/stop_words.txt", self.get_dictionary().term_dict,
+                                 self.get_dictionary().docs_dict, self.get_cache(), "./test_data/merged_terms_postings")
+        r = ReadFile()
+        queries = r.read_query_file(query_file)
+        query_num = 0
+        for query in queries:
+            query_num += 1
+            self.query_results = {doc_id: query_num for doc_id in self.searcher.search_query(query)}
+            results[query_num] = self.query_results
+        totaltime = time.time() - start
+        return results, totaltime
+
+
+    # def save_query_results(self):
+    #     f = open("results.txt", 'w')
+    #     for doc_id in self.query_results:
+    #         f.write("351   0  FR940104-0-00001  1   42.38   mt")
 
 
     # def summarize_document(self, doc_id, doc_path):

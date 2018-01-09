@@ -135,18 +135,23 @@ class View(Observer):
         term_table.grid(column=0, row=0, sticky=(N, W, E, S))
         scroll_bar_y.grid(column=1, row=0, sticky=(N, S))
 
-    def display_results(self, results):
+    def display_results(self, results, query_time):
         '''
         display the results of query
         '''
         term_dict = results
         results_display_window = Toplevel(self.root)
+        totaltime = Label(results_display_window, text="query time {} seconds".format("%.2f" % query_time))
+        totaltime.grid(row=1, column=0)
+        docs_btn1 = Button(results_display_window, text="save", command=self.save_result)
+        docs_btn1.grid(row=2, column=0)
         term_table = Treeview(results_display_window, columns=('Document', 'query_num'))
         scroll_bar = Scrollbar(results_display_window, orient=VERTICAL, command=term_table.yview)
         term_table['yscrollcommand'] = scroll_bar.set
         term_table.heading('Document', text='Document')
         term_table.heading('query_num', text='query_num')
         i = 1
+        term_table.insert('', 'end', text="{} documents".format(len(term_dict)), values=("", ""))
         for term in term_dict:
             term_table.insert('', 'end', text=str(i), values=(term, term_dict[term]))
             i += 1
@@ -179,10 +184,14 @@ class View(Observer):
         dir_path = filedialog.askdirectory()
         self.file_query_entry.delete(0, len(self.file_query_entry.get()))
         self.file_query_entry.insert(0, dir_path)
+        if dir_path is "":
+            return
+        results, time = self.controller.search_file_query(dir_path)
+        self.display_results(results, time)
 
     def search_query(self):
-        results = self.controller.search_query(self.query_entry.get())
-        self.display_results(results)
+        results, time = self.controller.search_query(self.query_entry.get())
+        self.display_results(results, time)
 
     def start_indexing(self):
         '''
@@ -294,3 +303,14 @@ class View(Observer):
         f = open(file_cache, "br")
         self.controller.set_cache(pickle.load(f))
         f.close()
+
+    def save_result(self):
+        '''
+        save the query to the memory
+        '''
+        file_result = asksaveasfile(mode='w', defaultextension=".rsl", title='Save Results')
+        if file_result is None:
+            return
+        for doc_id in self.controller.query_results:
+            file_result.write(doc_id+"\n")
+        file_result.close()
