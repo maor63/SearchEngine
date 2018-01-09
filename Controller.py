@@ -106,7 +106,7 @@ class Controller(Observer, Observable):
             f.write("351   0  FR940104-0-00001  1   42.38   mt")
 
 
-    def summarize_document(self, doc_id, doc_path):
-        s = Summerizer()
-        r = ReadFile()
-        docs = r.read_file_from_path(doc_path)
+    # def summarize_document(self, doc_id, doc_path):
+    #     s = Summerizer()
+    #     r = ReadFile()
+    #     docs = r.read_file_from_path(, doc_path

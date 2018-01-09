@@ -33,14 +33,14 @@ class Indexer:
             return
         most_frequent = str(max(terms_dict, key=terms_dict.get))
 
-        doc_row = "{0}#{1}#{2}#{3}\n".format(doc.id, most_frequent, terms_dict[most_frequent], str(len(doc.text)))
+        doc_row = "{0}#{1}#{2}#{3}#{4}\n".format(doc.id, most_frequent, terms_dict[most_frequent], str(len(doc.text)),
+                                                 doc.file_name)
         self.docs_posting.append(doc_row)
 
         for term in terms_dict:
             if term not in self.term_to_doc_id:
                 self.term_to_doc_id[term] = {}
             self.term_to_doc_id[term][doc.id] = terms_dict[term]
-
 
     def clean_postings(self):
         '''
@@ -175,9 +175,9 @@ class Indexer:
         '''
         retrieve data from doc posting        
         '''
-        doc_id, most_frequent_term, term_count, doc_size = line.split('#')
+        doc_id, most_frequent_term, term_count, doc_size, file_name = line.split('#')
         doc_data = {'row': file_row, 'most_ferc_term': most_frequent_term, 'term_count': term_count,
-                    'doc_size': int(doc_size)}
+                    'doc_size': int(doc_size), 'file_name': file_name.strip()}
         return doc_id, doc_data
 
     def get_data_from_term_posting_line(self, line, file_row):
@@ -185,10 +185,8 @@ class Indexer:
         retrieve data from term posting        
         '''
         term, df, sum_tf, docs = line.split('#')
-        # sum_tf = sum(map(lambda x: int(x.split(':')[1]), docs.split('*')[:-1]))
         term_data = {'row': file_row, 'sum_tf': sum_tf, 'df': int(df), 'docs': docs}
         return term, term_data
-
 
     def get_term_dictionary(self):
         '''
@@ -273,6 +271,3 @@ class Indexer:
         line = f.readline().rstrip()
         term, term_data = self.get_data_from_term_posting_line(line, row)
         return term, term_data
-
-
-

@@ -8,7 +8,6 @@ from Parser import Parser
 class ReadFile:
     def __init__(self):
         self.text_tags = re.compile("\[.*]|<.*>")
-        self.parser = Parser("")
 
     def count_docs(self, path):
         '''
@@ -33,43 +32,47 @@ class ReadFile:
             msg = "Read file {0}/{1} : {2}".format(str(i), len(all_sub_folders), curr_folder)
             print(msg)
             i += 1
-            d = self.read_file_from_path(curr_folder, path)
+            d = self.read_file_from_path(path, curr_folder)
             docs.extend(d)
             if i % threshold == 0:
                 yield docs
                 docs = []
         yield docs
 
-    def read_file_from_path(self, curr_folder, path):
+    def read_file_from_path(self, path, curr_folder):
         if curr_folder.startswith("LA"):
-            d = self.read_docs_from_LA_file(path + curr_folder + "/" + curr_folder)
+            d = self.read_docs_from_LA_file(path + curr_folder + "/" + curr_folder, curr_folder)
         elif curr_folder.startswith("FB"):
-            d = self.read_docs_from_FB_file(path + curr_folder + "/" + curr_folder)
+            d = self.read_docs_from_FB_file(path + curr_folder + "/" + curr_folder, curr_folder)
         else:
-            d = self.read_docs_from_FT_file(path + curr_folder + "/" + curr_folder)
+            d = self.read_docs_from_FT_file(path + curr_folder + "/" + curr_folder, curr_folder)
         return d
 
-    def read_docs_from_FB_file(self, file_path):
+    def read_docs_from_FB_file(self, file_path, file_name):
         '''
         read FB file type
+        :param file_name:
         '''
-        return self.read_from_file(self.remove_language_artical_type_rows, file_path)
+        return self.read_from_file(self.remove_language_artical_type_rows, file_path, file_name)
 
-    def read_docs_from_FT_file(self, file_path):
+    def read_docs_from_FT_file(self, file_path, file_name):
         '''
         read FT file type
+        :param file_name:
         '''
-        return self.read_from_file(self.remove_redundant_signs, file_path)
+        return self.read_from_file(self.remove_redundant_signs, file_path, file_name)
 
-    def read_docs_from_LA_file(self, file_path):
+    def read_docs_from_LA_file(self, file_path, file_name):
         '''
         read LA file type
+        :param file_name:
         '''
-        return self.read_from_file(self.remove_redundant_signs, file_path)
+        return self.read_from_file(self.remove_redundant_signs, file_path, file_name)
 
-    def read_from_file(self, clean_fn, file_path):
+    def read_from_file(self, clean_fn, file_path, file_name):
         '''
         create documents from file
+        :param file_name:
         :param clean_fn: function for cleaning the text of the doc
         :param file_path: the path of the file 
         :return: the documents from the file
@@ -82,17 +85,18 @@ class ReadFile:
         file_text = file_text
         raw_docs = file_text.split("</DOC>\n")
         for raw_doc in raw_docs:
-            doc = self.create_doc_from_raw(raw_doc)
+            doc = self.create_doc_from_raw(raw_doc, file_name)
             if doc is not None:
                 doc = clean_fn(doc)
                 docs.append(doc)
         file.close()
         return docs
 
-    def create_doc_from_raw(self, raw_doc):
+    def create_doc_from_raw(self, raw_doc, file_name):
         '''
         take raw document and convert it to Document object
-        :param raw_doc: 
+        :param file_name:
+        :param raw_doc:
         :return: 
         '''
         d = Document()
@@ -106,6 +110,7 @@ class ReadFile:
         if s_doc_text == -1:
             return None
         d.text = raw_doc[s_doc_text + len("<TEXT>"): e_doc_text].strip()
+        d.file_name = file_name
         return d
 
     def remove_language_artical_type_rows(self, doc):
