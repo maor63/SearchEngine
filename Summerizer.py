@@ -17,7 +17,8 @@ class Summerizer():
         self.term_dict = self.parser.parse(doc.text)
         if stem:
             self.term_dict = self.stemmer.stem(self.term_dict)
-        optimal_sentenc = list(map(lambda t: t[0], self.term_dict.most_common(12)))
+        optimal_sentenc = list(map(lambda t: t[0], self.term_dict.most_common(13)))
+        optimal_sentenc = optimal_sentenc[3:]
         text = doc.text
         text = text.replace('!', '.')
         text = text.replace('?', '.')
@@ -28,8 +29,8 @@ class Summerizer():
             sentence_terms = self.parser.parse(sentence)
             if len(sentence_terms) > 3:
                 senteces_counter[sentence] = self.calculate_cossim(optimal_sentenc, sentence_terms)
-            pass
-        return senteces_counter.most_common(limit)
+        most_common_sentences = list(map(lambda s: s[0], senteces_counter.most_common(limit)))
+        return most_common_sentences
 
     def calculate_tfidf(self, word, sentence):
         frec = Counter(sentence)[word]
@@ -47,4 +48,3 @@ class Summerizer():
         denominator = math.sqrt(len(query) * len(sentence))
 
         return innerproduct / denominator
-
