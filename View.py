@@ -190,11 +190,11 @@ class View(Observer):
         # self.file_query_entry.insert(0, dir_path)
         if dir_path is "":
             return
-        results, time = self.controller.search_file_query(dir_path)
+        results, time = self.controller.search_file_query(self.docs_entry.get(), self.posting_entry.get(),dir_path)
         self.display_results(results, time)
 
     def search_query(self):
-        results, time = self.controller.search_query(self.query_entry.get())
+        results, time = self.controller.search_query(self.docs_entry.get(), self.posting_entry.get(),self.query_entry.get())
         self.display_results(results, time)
 
     def start_indexing(self):
@@ -312,9 +312,10 @@ class View(Observer):
         '''
         save the query to the memory
         '''
-        file_result = asksaveasfile(mode='w', defaultextension=".rsl", title='Save Results')
+        file_result = asksaveasfile(mode='w', defaultextension=".txt", title='Save Results')
         if file_result is None:
             return
-        for doc_id in self.controller.query_results:
-            file_result.write(doc_id+"\n")
+        self.controller.save_query_results(file_result)
+        # for doc_id in self.controller.query_results:
+        #     file_result.write(doc_id+"\n")
         file_result.close()
