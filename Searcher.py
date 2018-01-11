@@ -11,6 +11,13 @@ class Searcher:
         # self.to_stem = to_stem
 
     def search_query(self, query, to_stem=False, limit=50):
+        '''
+        Search relevant documents to query
+        :param query: query to search
+        :param to_stem: true to activate stemming
+        :param limit: limit relevant documents
+        :return: relevant documents to query
+        '''
         terms = self.parser.parse(query)
         if to_stem:
             terms = self.stemmer.stem(terms)
