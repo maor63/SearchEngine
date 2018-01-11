@@ -226,7 +226,7 @@ class View(Observer):
             dir_path = askopenfilename(filetypes=[("Text files", "*.txt")])
             if dir_path is "":
                 return
-            results, time = self.controller.search_file_query(dir_path, self.to_stem)
+            results, time = self.controller.search_file_query(dir_path, stem=self.to_stem)
             self.display_results(results, time)
         except:
             msg = """
@@ -249,9 +249,9 @@ class View(Observer):
 
             else:
                 if self.to_expand:
-                    results, time = self.controller.expand_query(self.query_entry.get(), self.to_stem)
+                    results, time = self.controller.expand_query(self.query_entry.get(), stem=self.to_stem)
                 else:
-                    results, time = self.controller.search_query(self.query_entry.get(), self.to_stem)
+                    results, time = self.controller.search_query(self.query_entry.get(), stem=self.to_stem)
                 self.display_results(results, time)
         except:
             msg = """
