@@ -248,10 +248,9 @@ class View(Observer):
             self.display_summery_doc(results)
 
         else:
-            results, time = self.controller.search_query(self.query_entry.get())
+            results, time = self.controller.search_query(self.docs_entry.get(), self.posting_entry.get(),
+                                                         self.query_entry.get())
             self.display_results(results, time)
-        results, time = self.controller.search_query(self.docs_entry.get(), self.posting_entry.get(),self.query_entry.get())
-        self.display_results(results, time)
 
     def start_indexing(self):
         '''
