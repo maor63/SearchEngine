@@ -31,7 +31,7 @@ class Controller(Observer, Observable):
     def start_indexing(self, doc_path, posting_path, stem):
         '''
         start the indexing process for creating Dictionary and Postings files 
-        :param doc_path: path to the corpus
+        :param doc_path: path of the corpus
         :param posting_path: path where posting will be saved
         :param stem: True for activating stemming
         '''
@@ -98,10 +98,19 @@ class Controller(Observer, Observable):
         else:
             self.notify_observers(**kwargs)
 
-    def check_search_preconditions(self):
-        return self.doc_path != ""
+    # def check_search_preconditions(self):
+    #     return self.doc_path != ""
 
     def search_query(self, query, query_num=0, stem=False, limit=50):
+        '''
+        search relevant documents to query
+        :param query: query
+        :param query_num: query number
+        :param stem: true to activate stemming
+        :param limit: limit relevant documents
+        :return query result
+        :return time of process
+        '''
         start = time.time()
         d = self.get_dictionary()
         postings_postfix = "/merged_terms_postings"
@@ -114,6 +123,13 @@ class Controller(Observer, Observable):
         return self.query_results, totaltime
 
     def search_file_query(self, query_file, stem=False):
+        '''
+        search relevant documents to queries in file
+        :param query_file: query file
+        :param stem: true to activate stemming
+        :return queries result
+        :return time of process
+        '''
         results = {}
         start = time.time()
         r = ReadFile()
@@ -128,11 +144,21 @@ class Controller(Observer, Observable):
         return results, totaltime
 
     def save_query_results(self, file_result):
+        '''
+        save the query result to the memory
+        :param file_result: file query
+        '''
         for query_id in self.query_results:
             for doc_id in self.query_results[query_id]:
                 file_result.write("{0}   0  {1}  1   42.38   mt\n".format(query_id, doc_id))
 
     def summarize_document(self, doc_id, docs_path):
+        '''
+        summarize the document
+        :param doc_id: id of document
+        :param docs_path: path of corpus
+        :return most important sentences in documents
+        '''
         summerizer = Summerizer(self.doc_path + "/stop_words.txt")
         file_name = self.docs_dict[doc_id]['file_name'].strip()
         r = ReadFile()
@@ -143,6 +169,14 @@ class Controller(Observer, Observable):
         return res
 
     def expand_query(self, query, query_num=0, stem=False):
+        '''
+        expand the query
+        :param query: query
+        :param query_num: query number
+        :param stem: True for activating stemming
+        :return queries result
+        :return time of process
+        '''
         wx = WikipediaExpander()
         expended_query = wx.expand(query)
         limit = 50

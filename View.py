@@ -170,11 +170,11 @@ class View(Observer):
 
     def display_summery_doc(self, summery):
         '''
-        display the summery
+        display the summery of document
         '''
         root = Tk()
         root.title("Summery")
-        sentence = Label(root, text="sentence")
+        sentence = Label(root, text="Sentence")
         rank = Label(root, text="Rank")
         sentence.grid(row=0, column=1)
         rank.grid(row=0, column=0)
@@ -417,5 +417,8 @@ class View(Observer):
             os.remove(self.path_result)
 
     def pop_alert(self, msg):
+        '''
+        display alert for upload file
+        '''
         messagebox.showinfo(message=msg)
         pass

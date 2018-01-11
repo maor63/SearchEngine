@@ -3,6 +3,11 @@ import wikipedia
 
 class WikipediaExpander:
     def expand(self, query):
+        '''
+        add words to query from wikipedia
+        :param query: query
+        :return: expended query
+        '''
         query = query .strip()
         if len(query.split(' ')) > 1:
             return query

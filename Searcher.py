@@ -12,7 +12,7 @@ class Searcher:
 
     def search_query(self, query, to_stem=False, limit=50):
         '''
-        Search relevant documents to query
+        search relevant documents to query
         :param query: query to search
         :param to_stem: true to activate stemming
         :param limit: limit relevant documents

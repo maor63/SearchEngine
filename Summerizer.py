@@ -19,7 +19,7 @@ class Summerizer():
         :param doc: document to summarize
         :param limit: limit important sentences
         :param stem: true to activate stemming
-        :return: most important sentences
+        :return: most important sentences in documents
         '''
         self.term_dict = self.parser.parse(doc.text)
         if stem:
