@@ -109,7 +109,7 @@ class Controller(Observer, Observable):
             postings_postfix = "/stemed_merged_terms_postings"
         self.searcher = Searcher(self.doc_path + "/stop_words.txt", d.term_dict,
                                  d.docs_dict, self.get_cache(), self.posting_path + postings_postfix)
-        self.query_results = {query_num: self.searcher.search_query(query, limit=limit)}
+        self.query_results = {query_num: self.searcher.search_query(query, limit=limit, to_stem=stem)}
         totaltime = time.time() - start
         return self.query_results, totaltime
 
@@ -133,7 +133,7 @@ class Controller(Observer, Observable):
                 file_result.write("{0}   0  {1}  1   42.38   mt\n".format(query_id, doc_id))
 
     def summarize_document(self, doc_id, docs_path):
-        summerizer = Summerizer(docs_path + "/stop_words.txt")
+        summerizer = Summerizer(self.doc_path + "/stop_words.txt")
         file_name = self.docs_dict[doc_id]['file_name'].strip()
         r = ReadFile()
         t = "{0}/corpus/".format(docs_path)
@@ -149,4 +149,6 @@ class Controller(Observer, Observable):
         if query != expended_query:
             limit = 70
         self.query_results, t_time = self.search_query(expended_query, query_num, stem, limit)
+        if len(self.query_results[query_num]) < 51:
+            self.query_results, t_time = self.search_query(query, query_num, stem, 50)
         return self.query_results, t_time

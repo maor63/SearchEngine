@@ -172,7 +172,7 @@ class View(Observer):
         '''
         display the summery
         '''
-        root = Tk(self.root)
+        root = Tk()
         root.title("Summery")
         canvas = Canvas(root, height=300, width=300, bg="white")
         scroll_bar = Scrollbar(root, orient=HORIZONTAL, command=canvas.xview)
@@ -232,7 +232,7 @@ class View(Observer):
             dir_path = askopenfilename(filetypes=[("Text files", "*.txt")])
             if dir_path is "":
                 return
-            results, time = self.controller.search_file_query(dir_path)
+            results, time = self.controller.search_file_query(dir_path, self.to_stem)
             self.display_results(results, time)
         except:
             msg = """
@@ -243,7 +243,6 @@ class View(Observer):
                     3. (optional) upload cache for faster results
                     """
             self.pop_alert(msg)
-
 
     def search_query(self):
         '''
@@ -256,9 +255,9 @@ class View(Observer):
 
             else:
                 if self.to_expand:
-                    results, time = self.controller.expand_query(self.query_entry.get())
+                    results, time = self.controller.expand_query(self.query_entry.get(), self.to_stem)
                 else:
-                    results, time = self.controller.search_query(self.query_entry.get())
+                    results, time = self.controller.search_query(self.query_entry.get(), self.to_stem)
                 self.display_results(results, time)
         except:
             msg = """
@@ -270,6 +269,9 @@ class View(Observer):
             
             for summarize document you must enter
             1. corpus path
+            2. upload dictionary to system or 
+               start the indexing process (by clicking start)
+            3. (optional) upload cache for faster results
             """
             self.pop_alert(msg)
 
