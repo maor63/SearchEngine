@@ -7,7 +7,10 @@ class WikipediaExpander:
         if len(query.split(' ')) > 1:
             return query
         expended_query = [query]
-        page = wikipedia.page(query)
+        try:
+            page = wikipedia.page(query)
+        except wikipedia.DisambiguationError as e:
+            page = wikipedia.page(e.options[0])
         add_terms = 4
         if len(page.links) <= add_terms:
             expended_query.extend(page.links)

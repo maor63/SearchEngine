@@ -98,7 +98,10 @@ class Controller(Observer, Observable):
         else:
             self.notify_observers(**kwargs)
 
-    def search_query(self, query, query_num=0, stem=False):
+    def check_search_preconditions(self):
+        return self.doc_path != ""
+
+    def search_query(self, query, query_num=0, stem=False, limit=50):
         start = time.time()
         d = self.get_dictionary()
         postings_postfix = "/merged_terms_postings"
@@ -106,7 +109,7 @@ class Controller(Observer, Observable):
             postings_postfix = "/stemed_merged_terms_postings"
         self.searcher = Searcher(self.doc_path + "/stop_words.txt", d.term_dict,
                                  d.docs_dict, self.get_cache(), self.posting_path + postings_postfix)
-        self.query_results = {query_num: self.searcher.search_query(query)}
+        self.query_results = {query_num: self.searcher.search_query(query, limit=limit)}
         totaltime = time.time() - start
         return self.query_results, totaltime
 
@@ -142,5 +145,8 @@ class Controller(Observer, Observable):
     def expand_query(self, query, query_num=0, stem=False):
         wx = WikipediaExpander()
         expended_query = wx.expand(query)
-        self.query_results, t_time = self.search_query(expended_query, query_num, stem)
+        limit = 50
+        if query != expended_query:
+            limit = 70
+        self.query_results, t_time = self.search_query(expended_query, query_num, stem, limit)
         return self.query_results, t_time

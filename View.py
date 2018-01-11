@@ -1,6 +1,7 @@
 import pickle
 # from tkinter import filedialog
 from tkinter import *
+from tkinter import messagebox
 from tkinter.filedialog import asksaveasfile, askopenfilename
 from tkinter.ttk import Treeview, Progressbar
 
@@ -27,8 +28,9 @@ class View(Observer):
         self.file_query_entry['width'] = 50
         self.to_stem = False
         self.to_sum = False
+        self.to_expand = False
         self.stem_checkbutton = Checkbutton(self.root, text="stemming", command=self.change_stem_state)
-        self.extension_checkbutton = Checkbutton(self.root, text="Extension of query")
+        self.extension_checkbutton = Checkbutton(self.root, text="Extension of query", command=self.change_expand_state)
         self.summarize_checkbutton = Checkbutton(self.root, text="Summarize document", command=self.change_sum_state)
         self.progress_bar = Progressbar(self.root, orient=HORIZONTAL, length=200, mode='determinate')
         self.start_btn = Button(text="Start", fg="blue", command=self.start_indexing)
@@ -157,7 +159,8 @@ class View(Observer):
         term_table.insert('', 'end', text="total documents: {}".format(total_docs), values=("", ""))
         for query_id in query_id_to_docs:
             query_docs_count = len(query_id_to_docs[query_id])
-            term_table.insert('', 'end', text="query {0} documents: {1}".format(query_id, query_docs_count), values=("", ""))
+            term_table.insert('', 'end', text="query {0} documents: {1}".format(query_id, query_docs_count),
+                              values=("", ""))
             for doc_id in query_id_to_docs[query_id]:
                 term_table.insert('', 'end', text=str(i), values=(query_id, doc_id))
                 i += 1
@@ -177,11 +180,11 @@ class View(Observer):
         rank.grid(row=0, column=0)
         sentence_1 = Label(root, text=summery[0].replace("\n", ""))
         rank_1 = Label(root, text="5")
-        sentence_1.grid(row=1, column=1,  sticky=W)
+        sentence_1.grid(row=1, column=1, sticky=W)
         rank_1.grid(row=1, column=0)
         sentence_2 = Label(root, text=summery[1].replace("\n", ""))
         rank_2 = Label(root, text="4")
-        sentence_2.grid(row=2, column=1,  sticky=W)
+        sentence_2.grid(row=2, column=1, sticky=W)
         rank_2.grid(row=2, column=0)
         sentence_3 = Label(root, text=summery[2].replace("\n", ""))
         rank_3 = Label(root, text="3")
@@ -215,28 +218,54 @@ class View(Observer):
         self.posting_entry.delete(0, len(self.posting_entry.get()))
         self.posting_entry.insert(0, dir_path)
 
-
     def query_file_browse_location(self):
         '''
         ask the query file directory
         '''
-        dir_path = askopenfilename(filetypes=[("Text files", "*.txt")])
-        if dir_path is "":
-            return
-        results, time = self.controller.search_file_query(dir_path)
-        self.display_results(results, time)
+        try:
+            dir_path = askopenfilename(filetypes=[("Text files", "*.txt")])
+            if dir_path is "":
+                return
+            results, time = self.controller.search_file_query(dir_path)
+            self.display_results(results, time)
+        except:
+            msg = """
+                    for query file search you must enter: 
+                    1. posting_path 
+                    2. upload dictionary to system or 
+                       start the indexing process (by clicking start)
+                    3. (optional) upload cache for faster results
+                    """
+            self.pop_alert(msg)
+
 
     def search_query(self):
         '''
         start the query or summery process
         '''
-        if self.to_sum:
-            results =self.controller.summarize_document(self.query_entry.get(), self.docs_entry.get())
-            self.display_summery_doc(results)
+        try:
+            if self.to_sum:
+                results = self.controller.summarize_document(self.query_entry.get(), self.docs_entry.get())
+                self.display_summery_doc(results)
 
-        else:
-            results, time = self.controller.search_query(self.query_entry.get())
-            self.display_results(results, time)
+            else:
+                if self.to_expand:
+                    results, time = self.controller.expand_query(self.query_entry.get())
+                else:
+                    results, time = self.controller.search_query(self.query_entry.get())
+                self.display_results(results, time)
+        except:
+            msg = """
+            for query search you must enter: 
+            1. posting_path 
+            2. upload dictionary to system or 
+               start the indexing process (by clicking start)
+            3. (optional) upload cache for faster results
+            
+            for summarize document you must enter
+            1. corpus path
+            """
+            self.pop_alert(msg)
 
     def start_indexing(self):
         '''
@@ -263,6 +292,7 @@ class View(Observer):
         if "fail" in kwargs:
             self.start_btn['state'] = 'normal'
             self.stem_checkbutton['state'] = 'normal'
+            self.pop_alert("you must enter corpus path and posting path")
         elif kwargs['done']:
             self.progress_bar['value'] = 100
             self.start_btn['state'] = 'normal'
@@ -284,6 +314,15 @@ class View(Observer):
             self.to_stem = True
         else:
             self.to_stem = False
+
+    def change_expand_state(self):
+        '''
+       change the query search to expand mode
+       '''
+        if self.to_expand is False:
+            self.to_expand = True
+        else:
+            self.to_expand = False
 
     def change_sum_state(self):
         '''
@@ -337,8 +376,6 @@ class View(Observer):
         pickle.dump(self.controller.get_cache(), file_cache)
         file_cache.close()
 
-
-
     def upload_dictionary_cache(self):
         '''
         upload the dictionary and the cache from the memory
@@ -376,3 +413,7 @@ class View(Observer):
             return
         else:
             os.remove(self.path_result)
+
+    def pop_alert(self, msg):
+        messagebox.showinfo(message=msg)
+        pass
