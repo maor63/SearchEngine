@@ -139,6 +139,11 @@ class ReadFile:
         return doc
 
     def read_query_file(self, query_file):
+        '''
+        read query file
+        :param query_file: the query file
+        :return: the queries in file
+        '''
         f = open(query_file, 'r')
         text = f.read()
         queries = {}
