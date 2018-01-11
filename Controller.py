@@ -35,7 +35,7 @@ class Controller(Observer, Observable):
         print("Stemming: {0}".format(stem))
         self.module = Model(doc_path, posting_path)
         self.module.set_observer(self)
-        t = Thread(target=self.module.run_process, args=(stem, 100))
+        t = Thread(target=self.module.run_process, args=(stem, 200))
         t.start()
 
     def clean_postings(self):
@@ -50,7 +50,7 @@ class Controller(Observer, Observable):
 
     def get_dictionary(self):
         '''
-        :return: the Dictionary 
+        :return: the Dictionary
         '''
         d = Dictionary(self.term_dict, self.docs_dict)
         # return self.term_dict
@@ -83,7 +83,7 @@ class Controller(Observer, Observable):
 
     def update(self, **kwargs):
         '''
-        get updates from the Model 
+        get updates from the Model
         '''
         if "fail" in kwargs:
             self.notify_observers(**kwargs)
@@ -95,19 +95,21 @@ class Controller(Observer, Observable):
         else:
             self.notify_observers(**kwargs)
 
-    def search_query(self, query, query_num=0):
+    def search_query(self, doc_path, posting_path, query, query_num=0):
         start = time.time()
-        self.searcher = Searcher("./posting/stop_words.txt", self.get_dictionary().term_dict,
-                                 self.get_dictionary().docs_dict, self.get_cache(), "./posting/merged_terms_postings")
+        d = self.get_dictionary()
+        self.searcher = Searcher(doc_path + "/stop_words.txt", d.term_dict,
+                                 d.docs_dict, self.get_cache(), posting_path + "/merged_terms_postings")
         self.query_results = {query_num: self.searcher.search_query(query)}
         totaltime = time.time() - start
         return self.query_results, totaltime
 
-    def search_file_query(self, query_file):
+    def search_file_query(self, doc_path, posting_path, query_file):
         results = {}
         start = time.time()
-        self.searcher = Searcher("./test_data/stop_words.txt", self.get_dictionary().term_dict,
-                                 self.get_dictionary().docs_dict, self.get_cache(), "./test_data/merged_terms_postings")
+        d = self.get_dictionary()
+        self.searcher = Searcher(doc_path + "/stop_words.txt", d.term_dict,
+                                 d.docs_dict, self.get_cache(), posting_path + "/merged_terms_postings")
         r = ReadFile()
         queries = r.read_query_file(query_file)
         query_num = 0
@@ -115,12 +117,14 @@ class Controller(Observer, Observable):
             query_num = queries[query]
             results.update({query_num: self.searcher.search_query(query)})
         totaltime = time.time() - start
+        self.query_results = results
         return results, totaltime
 
-    # def save_query_results(self):
-    #     f = open("results.txt", 'w')
-    #     for doc_id in self.query_results:
-    #         f.write("351   0  FR940104-0-00001  1   42.38   mt")
+    def save_query_results(self, file_result):
+        # f = open("results.txt", 'w')
+        for query_id in self.query_results:
+            for doc_id in self.query_results[query_id]:
+                file_result.write("{0}   0  {1}  1   42.38   mt\n".format(query_id, doc_id))
 
     def summarize_document(self, doc_id, docs_path):
         summerizer = Summerizer(docs_path + "/stop_words.txt")
