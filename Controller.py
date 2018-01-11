@@ -8,6 +8,7 @@ from Observer import Observer
 from ReadFile import ReadFile
 from Searcher import Searcher
 from Summerizer import Summerizer
+from WikipediaExpander import WikipediaExpander
 
 
 class Dictionary:
@@ -24,6 +25,8 @@ class Controller(Observer, Observable):
         self.docs_dict = {}
         self.cache = {}
         self.query_results = []
+        self.posting_path = ""
+        self.doc_path = ""
 
     def start_indexing(self, doc_path, posting_path, stem):
         '''
@@ -95,33 +98,33 @@ class Controller(Observer, Observable):
         else:
             self.notify_observers(**kwargs)
 
-    def search_query(self, doc_path, posting_path, query, query_num=0):
+    def search_query(self, query, query_num=0, stem=False):
         start = time.time()
         d = self.get_dictionary()
-        self.searcher = Searcher(doc_path + "/stop_words.txt", d.term_dict,
-                                 d.docs_dict, self.get_cache(), posting_path + "/merged_terms_postings")
+        postings_postfix = "/merged_terms_postings"
+        if stem:
+            postings_postfix = "/stemed_merged_terms_postings"
+        self.searcher = Searcher(self.doc_path + "/stop_words.txt", d.term_dict,
+                                 d.docs_dict, self.get_cache(), self.posting_path + postings_postfix)
         self.query_results = {query_num: self.searcher.search_query(query)}
         totaltime = time.time() - start
         return self.query_results, totaltime
 
-    def search_file_query(self, doc_path, posting_path, query_file):
+    def search_file_query(self, query_file, stem=False):
         results = {}
         start = time.time()
-        d = self.get_dictionary()
-        self.searcher = Searcher(doc_path + "/stop_words.txt", d.term_dict,
-                                 d.docs_dict, self.get_cache(), posting_path + "/merged_terms_postings")
         r = ReadFile()
         queries = r.read_query_file(query_file)
         query_num = 0
         for query in queries:
             query_num = queries[query]
-            results.update({query_num: self.searcher.search_query(query)})
+            result, t_time = self.search_query(query, query_num, stem)
+            results.update(result)
         totaltime = time.time() - start
         self.query_results = results
         return results, totaltime
 
     def save_query_results(self, file_result):
-        # f = open("results.txt", 'w')
         for query_id in self.query_results:
             for doc_id in self.query_results[query_id]:
                 file_result.write("{0}   0  {1}  1   42.38   mt\n".format(query_id, doc_id))
@@ -135,3 +138,9 @@ class Controller(Observer, Observable):
         doc = list(filter(lambda d: d.id == doc_id, docs))[0]
         res = summerizer.get_importent_sentences(doc, 5)
         return res
+
+    def expand_query(self, query, query_num=0, stem=False):
+        wx = WikipediaExpander()
+        expended_query = wx.expand(query)
+        self.query_results, t_time = self.search_query(expended_query, query_num, stem)
+        return self.query_results, t_time

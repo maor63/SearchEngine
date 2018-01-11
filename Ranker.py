@@ -14,7 +14,7 @@ class Ranker:
         self.term_posting_file = term_posting_file
         self.indexer = Indexer()
 
-    def rank_query(self, query):
+    def rank_query(self, query, result_limit=50):
         docs = []
         most_common_docs = Counter()
         f = open(self.term_posting_file, 'r')
@@ -32,7 +32,7 @@ class Ranker:
         for d in docs:
             doc_id, frec = d.split(':')
             most_common_docs[doc_id] = self.calculate_cossim(query, d)
-        result = map(lambda x: x[0], most_common_docs.most_common(50))
+        result = map(lambda x: x[0], most_common_docs.most_common(result_limit))
         return result
 
     def calculate_tfidf(self, word, document):

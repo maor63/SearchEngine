@@ -218,6 +218,7 @@ class View(Observer):
         ask the carpus and stopwords directory path
         '''
         dir_path = filedialog.askdirectory()
+        self.controller.doc_path = dir_path
         self.docs_entry.delete(0, len(self.docs_entry.get()))
         self.docs_entry.insert(0, dir_path)
 
@@ -226,6 +227,7 @@ class View(Observer):
         ask the posting directory
         '''
         dir_path = filedialog.askdirectory()
+        self.controller.posting_path = dir_path
         self.posting_entry.delete(0, len(self.posting_entry.get()))
         self.posting_entry.insert(0, dir_path)
 
@@ -239,7 +241,7 @@ class View(Observer):
         # self.file_query_entry.insert(0, dir_path)
         if dir_path is "":
             return
-        results, time = self.controller.search_file_query(self.docs_entry.get(), self.posting_entry.get(),dir_path)
+        results, time = self.controller.search_file_query(dir_path)
         self.display_results(results, time)
 
     def search_query(self):
@@ -248,8 +250,7 @@ class View(Observer):
             self.display_summery_doc(results)
 
         else:
-            results, time = self.controller.search_query(self.docs_entry.get(), self.posting_entry.get(),
-                                                         self.query_entry.get())
+            results, time = self.controller.search_query(self.query_entry.get())
             self.display_results(results, time)
 
     def start_indexing(self):

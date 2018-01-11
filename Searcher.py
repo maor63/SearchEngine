@@ -10,8 +10,8 @@ class Searcher:
         self.ranker = Ranker(term_dict, doc_dict, cache, term_posting_file)
         # self.to_stem = to_stem
 
-    def search_query(self, query, to_stem=False):
+    def search_query(self, query, to_stem=False, limit=50):
         terms = self.parser.parse(query)
         if to_stem:
             terms = self.stemmer.stem(terms)
-        return list(self.ranker.rank_query(terms))
+        return list(self.ranker.rank_query(terms, limit))
