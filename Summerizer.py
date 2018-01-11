@@ -14,6 +14,13 @@ class Summerizer():
         self.N = 0
 
     def get_importent_sentences(self, doc, limit, stem=False):
+        '''
+        Calculate the most sentences in document
+        :param doc: document to summarize
+        :param limit: limit important sentences
+        :param stem: true to activate stemming
+        :return: most important sentences
+        '''
         self.term_dict = self.parser.parse(doc.text)
         if stem:
             self.term_dict = self.stemmer.stem(self.term_dict)
@@ -33,6 +40,12 @@ class Summerizer():
         return most_common_sentences
 
     def calculate_tfidf(self, word, sentence):
+        '''
+        Calculate tfidf
+        :param word: word for calculation
+        :param sentence: sentence for calculation
+        :return: tf * idf
+        '''
         frec = Counter(sentence)[word]
         D = len(sentence)
         tf = frec / D
@@ -41,6 +54,12 @@ class Summerizer():
         return tf * idf
 
     def calculate_cossim(self, query, sentence):
+        '''
+        Calculate cossim
+        :param query: query for calculation
+        :param sentence: sentence for calculation
+        :return: cossim
+        '''
         innerproduct = 0
         for word in query:
             word_w = self.calculate_tfidf(word, sentence)

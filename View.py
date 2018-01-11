@@ -70,13 +70,13 @@ class View(Observer):
         doc_label.grid(row=1, sticky=E)
         posting_label.grid(row=2, sticky=E)
         query_label.grid(row=10, sticky=E)
-        self.run_query.grid(row=14, column=1)
-        file_query_label.grid(row=13, sticky=E)
-        file_run_query.grid(row=13, column=2)
+        self.run_query.grid(row=13, column=1)
+        file_query_label.grid(row=14, sticky=E)
+        file_run_query.grid(row=14, column=2)
         self.docs_entry.grid(row=1, column=1)
         self.posting_entry.grid(row=2, column=1)
         self.query_entry.grid(row=10, column=1)
-        self.file_query_entry.grid(row=13, column=1)
+        self.file_query_entry.grid(row=14, column=1)
         docs_btn.grid(row=1, column=2)
         posting_btn.grid(row=2, column=2)
         self.start_btn.grid(row=5, column=1)
@@ -167,50 +167,34 @@ class View(Observer):
 
     def display_summery_doc(self, summery):
         '''
-        display the summerize
+        display the summery
         '''
-        # dictionary_display_window = Toplevel(self.root)
-        # dictionary_display_window.wm_geometry("1000x1000")
-        # term_table = Treeview(dictionary_display_window, columns=('rank', 'sentence'))
-        # scroll_bar = Scrollbar(dictionary_display_window, orient=VERTICAL, command=term_table.yview)
-        # term_table['yscrollcommand'] = scroll_bar.set
-        # term_table.heading('rank', text='Rank')
-        # term_table.heading('sentence', text='Sentence')
-        # i = 1
-        # for sentences in summery:
-        #     sentence_display = sentences.replace("\n", "")
-        #     term_table.insert('', 'end', text="", values=(str(i), sentence_display))
-        #     term_table.insert('', 'end', text="", values=("", ""))
-        #     i += 1
-        #
-        # term_table.grid(column=0, row=0, sticky=(N, W, E, S))
-        # scroll_bar.grid(column=1, row=0, sticky=(N, S))
         root = Tk()
         root.title("Summery")
         sentence = Label(root, text="sentence")
         rank = Label(root, text="Rank")
-        sentence.grid(row=0, column=0)
-        rank.grid(row=0, column=1)
+        sentence.grid(row=0, column=1)
+        rank.grid(row=0, column=0)
         sentence_1 = Label(root, text=summery[0].replace("\n", ""))
         rank_1 = Label(root, text="5")
-        sentence_1.grid(row=1, column=0,  sticky=W)
-        rank_1.grid(row=1, column=1)
+        sentence_1.grid(row=1, column=1,  sticky=W)
+        rank_1.grid(row=1, column=0)
         sentence_2 = Label(root, text=summery[1].replace("\n", ""))
         rank_2 = Label(root, text="4")
-        sentence_2.grid(row=2, column=0,  sticky=W)
-        rank_2.grid(row=2, column=1)
+        sentence_2.grid(row=2, column=1,  sticky=W)
+        rank_2.grid(row=2, column=0)
         sentence_3 = Label(root, text=summery[2].replace("\n", ""))
         rank_3 = Label(root, text="3")
-        sentence_3.grid(row=3, column=0, sticky=W)
-        rank_3.grid(row=3, column=1)
+        sentence_3.grid(row=3, column=1, sticky=W)
+        rank_3.grid(row=3, column=0)
         sentence_4 = Label(root, text=summery[3].replace("\n", ""))
         rank_4 = Label(root, text="2")
-        sentence_4.grid(row=4, column=0, sticky=W)
-        rank_4.grid(row=4, column=1)
+        sentence_4.grid(row=4, column=1, sticky=W)
+        rank_4.grid(row=4, column=0)
         sentence_5 = Label(root, text=summery[4].replace("\n", ""))
         rank_5 = Label(root, text="1")
-        sentence_5.grid(row=5, column=0, sticky=W)
-        rank_5.grid(row=5, column=1)
+        sentence_5.grid(row=5, column=1, sticky=W)
+        rank_5.grid(row=5, column=0)
         root.mainloop()
 
     def docs_browse_location(self):
@@ -234,17 +218,18 @@ class View(Observer):
 
     def query_file_browse_location(self):
         '''
-        ask the posting directory
+        ask the query file directory
         '''
         dir_path = askopenfilename(filetypes=[("Text files", "*.txt")])
-        # self.file_query_entry.delete(0, len(self.file_query_entry.get()))
-        # self.file_query_entry.insert(0, dir_path)
         if dir_path is "":
             return
         results, time = self.controller.search_file_query(dir_path)
         self.display_results(results, time)
 
     def search_query(self):
+        '''
+        start the query or summery process
+        '''
         if self.to_sum:
             results =self.controller.summarize_document(self.query_entry.get(), self.docs_entry.get())
             self.display_summery_doc(results)
@@ -381,11 +366,12 @@ class View(Observer):
         if file_result is None:
             return
         self.controller.save_query_results(file_result)
-        # for doc_id in self.controller.query_results:
-        #     file_result.write(doc_id+"\n")
         file_result.close()
 
     def reset_result(self):
+        '''
+        delete result file
+        '''
         if self.path_result == "":
             return
         else:
