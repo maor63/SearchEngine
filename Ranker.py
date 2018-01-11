@@ -15,6 +15,12 @@ class Ranker:
         self.indexer = Indexer()
 
     def rank_query(self, query, result_limit=50):
+        '''
+        rank relevant documents to query
+        :param query: query to search
+        :param limit: limit relevant documents
+        :return: ranked relevant documents to query
+        '''
         docs = []
         most_common_docs = Counter()
         f = open(self.term_posting_file, 'r')
@@ -36,6 +42,12 @@ class Ranker:
         return result
 
     def calculate_tfidf(self, word, document):
+        '''
+        Calculate tfidf
+        :param word: word for calculation
+        :param document: document for calculation
+        :return: tf * idf
+        '''
         doc_id, frec = document.split(':')
         frec = int(frec)
         D = self.doc_dict[doc_id]['doc_size']
@@ -45,6 +57,12 @@ class Ranker:
         return tf * idf
 
     def calculate_cossim(self, query, document):
+        '''
+        Calculate cossim
+        :param query: query for calculation
+        :param document: document for calculation
+        :return: cossim
+        '''
         doc_id, frec = document.split(':')
         innerproduct = 0
         for word in query:
