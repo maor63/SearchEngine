@@ -26,14 +26,15 @@ class View(Observer):
         self.file_query_entry = Entry(self.root)
         self.file_query_entry['width'] = 50
         self.to_stem = False
+        self.to_sum = False
         self.stem_checkbutton = Checkbutton(self.root, text="stemming", command=self.change_stem_state)
         self.extension_checkbutton = Checkbutton(self.root, text="Extension of query")
-        self.summarize_checkbutton = Checkbutton(self.root, text="Summarize document")
+        self.summarize_checkbutton = Checkbutton(self.root, text="Summarize document", command=self.change_sum_state)
         self.progress_bar = Progressbar(self.root, orient=HORIZONTAL, length=200, mode='determinate')
         self.start_btn = Button(text="Start", fg="blue", command=self.start_indexing)
         self.run_query = Button(text="Run", fg="blue", command=self.search_query)
         self.reset_btn = Button(text="Reset process", fg="red", command=self.reset_data)
-        self.reset_result = Button(text="Reset result")
+        self.reset_result = Button(text="Reset result", command=self.reset_result)
         self.dictionary_btn = Button(text="Show dictionary", fg="red", command=self.display_dictionary)
         self.cache_btn = Button(text="Show cache", fg="red", command=self.display_cache)
         self.save_btn = Button(text="Save dictionary and cache", command=self.save_dictionary_cache)
@@ -45,6 +46,7 @@ class View(Observer):
         self.status_bar_text.set('Status:')
         self.summary = {}
         self.create_view()
+        self.path_result = ""
 
     def start(self):
         '''
@@ -163,6 +165,53 @@ class View(Observer):
         term_table.grid(column=0, row=0, sticky=(N, W, E, S))
         scroll_bar.grid(column=1, row=0, sticky=(N, S))
 
+    def display_summery_doc(self, summery):
+        '''
+        display the summerize
+        '''
+        # dictionary_display_window = Toplevel(self.root)
+        # dictionary_display_window.wm_geometry("1000x1000")
+        # term_table = Treeview(dictionary_display_window, columns=('rank', 'sentence'))
+        # scroll_bar = Scrollbar(dictionary_display_window, orient=VERTICAL, command=term_table.yview)
+        # term_table['yscrollcommand'] = scroll_bar.set
+        # term_table.heading('rank', text='Rank')
+        # term_table.heading('sentence', text='Sentence')
+        # i = 1
+        # for sentences in summery:
+        #     sentence_display = sentences.replace("\n", "")
+        #     term_table.insert('', 'end', text="", values=(str(i), sentence_display))
+        #     term_table.insert('', 'end', text="", values=("", ""))
+        #     i += 1
+        #
+        # term_table.grid(column=0, row=0, sticky=(N, W, E, S))
+        # scroll_bar.grid(column=1, row=0, sticky=(N, S))
+        root = Tk()
+        root.title("Summery")
+        sentence = Label(root, text="sentence")
+        rank = Label(root, text="Rank")
+        sentence.grid(row=0, column=0)
+        rank.grid(row=0, column=1)
+        sentence_1 = Label(root, text=summery[0].replace("\n", ""))
+        rank_1 = Label(root, text="5")
+        sentence_1.grid(row=1, column=0,  sticky=W)
+        rank_1.grid(row=1, column=1)
+        sentence_2 = Label(root, text=summery[1].replace("\n", ""))
+        rank_2 = Label(root, text="4")
+        sentence_2.grid(row=2, column=0,  sticky=W)
+        rank_2.grid(row=2, column=1)
+        sentence_3 = Label(root, text=summery[2].replace("\n", ""))
+        rank_3 = Label(root, text="3")
+        sentence_3.grid(row=3, column=0, sticky=W)
+        rank_3.grid(row=3, column=1)
+        sentence_4 = Label(root, text=summery[3].replace("\n", ""))
+        rank_4 = Label(root, text="2")
+        sentence_4.grid(row=4, column=0, sticky=W)
+        rank_4.grid(row=4, column=1)
+        sentence_5 = Label(root, text=summery[4].replace("\n", ""))
+        rank_5 = Label(root, text="1")
+        sentence_5.grid(row=5, column=0, sticky=W)
+        rank_5.grid(row=5, column=1)
+        root.mainloop()
 
     def docs_browse_location(self):
         '''
@@ -194,8 +243,16 @@ class View(Observer):
         self.display_results(results, time)
 
     def search_query(self):
-        results, time = self.controller.search_query(self.query_entry.get())
-        self.display_results(results, time)
+        if self.to_sum:
+            results =self.controller.summarize_document(self.query_entry.get(), self.docs_entry.get())
+            self.display_summery_doc(results)
+
+        else:
+            results, time = self.controller.search_query(self.query_entry.get())
+            self.display_results(results, time)
+
+    # def change_sumerize(self):
+    #     self.controller.summarize_document(self.query_entry.get())
 
     def start_indexing(self):
         '''
@@ -243,6 +300,15 @@ class View(Observer):
             self.to_stem = True
         else:
             self.to_stem = False
+
+    def change_sum_state(self):
+        '''
+        change the process to sum mode
+        '''
+        if self.to_sum is False:
+            self.to_sum = True
+        else:
+            self.to_sum = False
 
     def reset_data(self):
         '''
@@ -310,11 +376,18 @@ class View(Observer):
 
     def save_result(self):
         '''
-        save the query to the memory
+        save the query result to the memory
         '''
         file_result = asksaveasfile(mode='w', defaultextension=".rsl", title='Save Results')
         if file_result is None:
             return
+        self.path_result = file_result.name
         for doc_id in self.controller.query_results:
             file_result.write(doc_id+"\n")
         file_result.close()
+
+    def reset_result(self):
+        if self.path_result == "":
+            return
+        else:
+            os.remove(self.path_result)

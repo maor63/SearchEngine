@@ -97,8 +97,8 @@ class Controller(Observer, Observable):
 
     def search_query(self, query, query_num=0):
         start = time.time()
-        self.searcher = Searcher("./test_data/stop_words.txt", self.get_dictionary().term_dict,
-                                 self.get_dictionary().docs_dict, self.get_cache(), "./test_data/merged_terms_postings")
+        self.searcher = Searcher("./posting/stop_words.txt", self.get_dictionary().term_dict,
+                                 self.get_dictionary().docs_dict, self.get_cache(), "./posting/merged_terms_postings")
         self.query_results = {query_num: self.searcher.search_query(query)}
         totaltime = time.time() - start
         return self.query_results, totaltime
@@ -122,7 +122,12 @@ class Controller(Observer, Observable):
     #     for doc_id in self.query_results:
     #         f.write("351   0  FR940104-0-00001  1   42.38   mt")
 
-    # def summarize_document(self, doc_id, doc_path):
-    #     s = Summerizer()
-    #     r = ReadFile()
-    #     docs = r.read_file_from_path(, doc_path
+    def summarize_document(self, doc_id, docs_path):
+        summerizer = Summerizer(docs_path + "/stop_words.txt")
+        file_name = self.docs_dict[doc_id]['file_name'].strip()
+        r = ReadFile()
+        t = "{0}/corpus/".format(docs_path)
+        docs = r.read_file_from_path(t, file_name)
+        doc = list(filter(lambda d: d.id == doc_id, docs))[0]
+        res = summerizer.get_importent_sentences(doc, 5)
+        return res
