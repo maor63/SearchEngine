@@ -160,6 +160,10 @@ class Controller(Observer, Observable):
         :return most important sentences in documents
         '''
         summerizer = Summerizer(self.doc_path + "/stop_words.txt")
+        if self.docs_dict == {}:
+            raise Exception
+        if doc_id not in self.docs_dict:
+            return None
         file_name = self.docs_dict[doc_id]['file_name'].strip()
         r = ReadFile()
         t = "{0}/corpus/".format(docs_path)

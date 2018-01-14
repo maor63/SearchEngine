@@ -48,7 +48,7 @@ class View(Observer):
         self.status_bar_text.set('Status:')
         self.summary = {}
         self.create_view()
-        self.path_result = ""
+        self.path_result = []
 
     def start(self):
         '''
@@ -235,6 +235,7 @@ class View(Observer):
                     2. upload dictionary to system or 
                        start the indexing process (by clicking start)
                     3. (optional) upload cache for faster results
+                    4. if you choose stemming you most upload stemed dictionary and cache
                     """
             self.pop_alert(msg)
 
@@ -245,7 +246,10 @@ class View(Observer):
         try:
             if self.to_sum:
                 results = self.controller.summarize_document(self.query_entry.get(), self.docs_entry.get())
-                self.display_summery_doc(results)
+                if results is None:
+                    self.pop_alert("Doc id was not found")
+                else:
+                    self.display_summery_doc(results)
 
             else:
                 if self.to_expand:
@@ -266,6 +270,8 @@ class View(Observer):
             2. upload dictionary to system or 
                start the indexing process (by clicking start)
             3. (optional) upload cache for faster results
+            
+            *if you choose stemming you most upload stemed dictionary and cache
             """
             self.pop_alert(msg)
 
@@ -405,16 +411,16 @@ class View(Observer):
         if file_result is None:
             return
         self.controller.save_query_results(file_result)
+        self.path_result.append(file_result.name)
         file_result.close()
 
     def reset_result(self):
         '''
         delete result file
         '''
-        if self.path_result == "":
-            return
-        else:
-            os.remove(self.path_result)
+        for file_name in self.path_result:
+            os.remove(file_name)
+        self.path_result = []
 
     def pop_alert(self, msg):
         '''
