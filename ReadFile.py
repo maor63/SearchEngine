@@ -156,10 +156,13 @@ class ReadFile:
         return queries
 
     def getDataFromTag(self, raw_query, tag):
+        """
+        Extract data from tag
+        :param raw_query: the text (xml)
+        :param tag: tag name
+        :return: data inside the tag
+        """
         s = raw_query.find(tag) + len(tag)
         e = raw_query.find("\n", s)
         return raw_query[s: e]
-
-    def save_query_results(self, query_results, path):
-        pass
 

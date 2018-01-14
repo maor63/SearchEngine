@@ -267,6 +267,12 @@ class Indexer:
         return self.Cache
 
     def getTermAndTermData(self, f, row):
+        """
+        get the term and the term data from a row in the term posting
+        :param f: file object of the posting
+        :param row: position in the file to the start of the line
+        :return: term and term data(posting data)
+        """
         f.seek(row)
         line = f.readline().rstrip()
         term, term_data = self.get_data_from_term_posting_line(line, row)
